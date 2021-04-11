@@ -1,5 +1,4 @@
-#ifndef _WM_INTERFACE_H_
-#define _WM_INTERFACE_H_
+#pragma once
 
 #include "../bi_defines.h"
 
@@ -54,5 +53,3 @@ class WM_INTERFACE : public Entity
 
     bool IsCommandMenuActive() const;
 };
-
-#endif

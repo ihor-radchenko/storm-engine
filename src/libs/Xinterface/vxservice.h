@@ -1,5 +1,4 @@
-#ifndef _VXISERVICE_H_
-#define _VXISERVICE_H_
+#pragma once
 
 #define TEXTURE_MODIFY_NONE 0
 #define TEXTURE_MODIFY_HORZFLIP 1
@@ -37,5 +36,3 @@ class VXSERVICE
 
     virtual void ReleaseAll() = 0;
 };
-
-#endif

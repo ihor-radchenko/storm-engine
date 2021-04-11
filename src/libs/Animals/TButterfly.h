@@ -1,5 +1,4 @@
-#ifndef _TBUTTERFLY_H_
-#define _TBUTTERFLY_H_
+#pragma once
 
 #include "Cvector.h"
 #include "EntityManager.h"
@@ -85,5 +84,3 @@ class TButterfly
     float tI, tJ;
 };
 //--------------------------------------------------------------------
-
-#endif

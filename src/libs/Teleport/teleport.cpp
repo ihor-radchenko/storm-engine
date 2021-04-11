@@ -281,31 +281,25 @@ bool FINDFILESINTODIRECTORY::Init()
     {
         auto *const dirName = AttributesPointer->GetAttribute("dir");
         auto *const maskName = AttributesPointer->GetAttribute("mask");
-        char fullName[512];
-        fullName[0] = 0;
-        if (dirName)
-            sprintf_s(fullName, "%s\\", dirName);
+        const char *curMask;
         if (maskName)
-            strcat_s(fullName, maskName);
+        {
+            curMask = maskName;
+        }
         else
-            strcat_s(fullName, "*.*");
-        WIN32_FIND_DATA finddat;
-        auto *const hdl = fio->_FindFirstFile(fullName, &finddat);
+        {
+            curMask = "*.*";
+        }
+        auto file_idx = 0;
         auto *pA = AttributesPointer->CreateSubAClass(AttributesPointer, "filelist");
-        for (auto file_idx = 0; hdl != INVALID_HANDLE_VALUE; file_idx++)
+        const auto vFilenames = fio->_GetPathsOrFilenamesByMask(dirName, curMask, false);
+        for (std::string filename : vFilenames)
         {
             char sname[32];
-            sprintf_s(sname, "id%d", file_idx);
-            if (finddat.cFileName)
-            {
-                std::string FileName = utf8::ConvertWideToUtf8(finddat.cFileName);
-                pA->SetAttribute(sname, FileName.c_str());
-            }
-            if (!fio->_FindNextFile(hdl, &finddat))
-                break;
+            sprintf(sname, "id%d", file_idx);
+            pA->SetAttribute(sname, filename.c_str());
+            file_idx++;
         }
-        if (hdl != INVALID_HANDLE_VALUE)
-            fio->_FindClose(hdl);
         return true;
     }
     core.Trace("Attributes Pointer into class FINDFILESINTODIRECTORY = NULL");
@@ -320,18 +314,18 @@ bool FINDDIALOGNODES::Init()
         auto *pA = AttributesPointer->CreateSubAClass(AttributesPointer, "nodelist");
         if (fileName && pA)
         {
-            auto *const hfile = fio->_CreateFile(fileName, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-            if (hfile == INVALID_HANDLE_VALUE)
+            auto fileS = fio->_CreateFile(fileName, std::ios::binary | std::ios::in);
+            if (!fileS.is_open())
             {
                 core.Trace("WARNING! Can`t dialog file %s", fileName);
                 return false;
             }
 
-            const long filesize = fio->_GetFileSize(hfile, nullptr);
+            const long filesize = fio->_GetFileSize(fileName);
             if (filesize == 0)
             {
                 core.Trace("Empty dialog file %s", fileName);
-                fio->_CloseHandle(hfile);
+                fio->_CloseFile(fileS);
                 return false;
             }
 
@@ -339,20 +333,18 @@ bool FINDDIALOGNODES::Init()
             if (fileBuf == nullptr)
             {
                 core.Trace("Can`t create buffer for read dialog file %s", fileName);
-                fio->_CloseHandle(hfile);
+                fio->_CloseFile(fileS);
                 return false;
             }
 
-            uint32_t readsize;
-            if (fio->_ReadFile(hfile, fileBuf, filesize, &readsize) == FALSE ||
-                readsize != static_cast<uint32_t>(filesize))
+            if (!fio->_ReadFile(fileS, fileBuf, filesize))
             {
                 core.Trace("Can`t read dialog file: %s", fileName);
-                fio->_CloseHandle(hfile);
+                fio->_CloseFile(fileS);
                 delete[] fileBuf;
                 return false;
             }
-            fio->_CloseHandle(hfile);
+            fio->_CloseFile(fileS);
             fileBuf[filesize] = 0;
 
             // now there is a buffer - start analyzing it

@@ -1,5 +1,4 @@
-#ifndef __CVECTOR_H__
-#define __CVECTOR_H__
+#pragma once
 
 #include <math.h>
 
@@ -310,5 +309,3 @@ struct DVECTOR
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
 };
-
-#endif

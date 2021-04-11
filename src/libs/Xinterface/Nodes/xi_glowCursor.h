@@ -1,5 +1,4 @@
-#ifndef __XI_GLOWCURSOR_H__
-#define __XI_GLOWCURSOR_H__
+#pragma once
 
 #include "..//inode.h"
 
@@ -56,5 +55,3 @@ class CXI_GLOWCURSOR : public CINODE
 
     CINODE *m_pPrevNode;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _S_TOKEN_H_
-#define _S_TOKEN_H_
+#pragma once
 
 #include <Windows.h>
 #include <cstdint>
@@ -210,5 +209,3 @@ class TOKEN
     uint32_t MakeHashValue(const char *string, uint32_t max_syms = 0);
     bool InitializeHashTable();
 };
-
-#endif

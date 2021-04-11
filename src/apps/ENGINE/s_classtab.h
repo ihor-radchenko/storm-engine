@@ -1,5 +1,4 @@
-#ifndef _S_CLASSTAB_H_
-#define _S_CLASSTAB_H_
+#pragma once
 
 #include "data.h"
 #include <vector>
@@ -70,5 +69,3 @@ class S_CLASSTAB
     void InitSystemClasses();
     bool IsClassDataSet(uint32_t class_id);
 };
-
-#endif

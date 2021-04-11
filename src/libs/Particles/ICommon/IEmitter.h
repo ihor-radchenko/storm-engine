@@ -1,5 +1,4 @@
-#ifndef EMITTER_INTERFACE
-#define EMITTER_INTERFACE
+#pragma once
 
 #include "../system/DataSource/FieldList.h"
 #include "math3d/Matrix.h"
@@ -60,5 +59,3 @@ class IEmitter
 
     virtual void Stop() = 0;
 };
-
-#endif

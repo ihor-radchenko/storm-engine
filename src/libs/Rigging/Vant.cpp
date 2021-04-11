@@ -6,6 +6,8 @@
 #include "ship_base.h"
 #include "vfile_service.h"
 
+static const char *RIGGING_INI_FILE = "resource\\ini\\rigging.ini";
+
 VANT_BASE::VANT_BASE()
 {
     bUse = false;
@@ -89,14 +91,10 @@ void VANT_BASE::Execute(uint32_t Delta_Time)
     {
         // ====================================================
         // If the ini-file has been changed, read the info from it
-        WIN32_FIND_DATA wfd;
-        auto *const h = fio->_FindFirstFile("resource\\ini\\rigging.ini", &wfd);
-        if (INVALID_HANDLE_VALUE != h)
+        if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
         {
-            auto ft_new = wfd.ftLastWriteTime;
-            fio->_FindClose(h);
-
-            if (CompareFileTime(&ft_old, &ft_new) != 0)
+            auto ft_new = fio->_GetLastWriteTime(RIGGING_INI_FILE);
+            if (ft_old != ft_new)
             {
                 LoadIni();
             }
@@ -630,17 +628,15 @@ void VANT::LoadIni()
     char section[256];
     char param[256];
 
-    INIFILE *ini;
-    WIN32_FIND_DATA wfd;
-    const HANDLE h = fio->_FindFirstFile("resource\\ini\\rigging.ini", &wfd);
-    if (INVALID_HANDLE_VALUE != h)
+    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
     {
-        ft_old = wfd.ftLastWriteTime;
-        fio->_FindClose(h);
+        ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE);
     }
-    ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
     if (!ini)
+    {
         throw std::exception("rigging.ini file not found!");
+    }
 
     sprintf_s(section, "VANTS");
 
@@ -704,7 +700,6 @@ void VANT::LoadIni()
     MAXFALL_CMP_VAL = ini->GetFloat(section, "fDisapearValue", 5.f);
 
     VantId = 0;
-    delete ini;
     // UNGUARD
 }
 
@@ -714,19 +709,17 @@ void VANTL::LoadIni()
     char section[256];
     char param[256];
 
-    INIFILE *ini;
-    WIN32_FIND_DATA wfd;
-    HANDLE h = fio->_FindFirstFile("resource\\ini\\rigging.ini", &wfd);
-    if (INVALID_HANDLE_VALUE != h)
+    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
     {
-        ft_old = wfd.ftLastWriteTime;
-        fio->_FindClose(h);
+        ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE);
     }
-    ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
     if (!ini)
+    {
         throw std::exception("rigging.ini file not found!");
+    }
 
-    sprintf_s(section, "VANTS_L");
+    sprintf(section, "VANTS_L");
 
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "vant.tga");
@@ -788,7 +781,6 @@ void VANTL::LoadIni()
     MAXFALL_CMP_VAL = ini->GetFloat(section, "fDisapearValue", 5.f);
 
     VantId = 1;
-    delete ini;
     // UNGUARD
 }
 
@@ -798,19 +790,17 @@ void VANTZ::LoadIni()
     char section[256];
     char param[256];
 
-    INIFILE *ini;
-    WIN32_FIND_DATA wfd;
-    HANDLE h = fio->_FindFirstFile("resource\\ini\\rigging.ini", &wfd);
-    if (INVALID_HANDLE_VALUE != h)
+    if (fio->_FileOrDirectoryExists(RIGGING_INI_FILE))
     {
-        ft_old = wfd.ftLastWriteTime;
-        fio->_FindClose(h);
+        ft_old = fio->_GetLastWriteTime(RIGGING_INI_FILE);
     }
-    ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
+    auto ini = fio->OpenIniFile("resource\\ini\\rigging.ini");
     if (!ini)
+    {
         throw std::exception("rigging.ini file not found!");
+    }
 
-    sprintf_s(section, "VANTS_Z");
+    sprintf(section, "VANTS_Z");
 
     // texture name
     ini->ReadString(section, "TextureName", param, sizeof(param) - 1, "vant.tga");
@@ -872,7 +862,6 @@ void VANTZ::LoadIni()
     MAXFALL_CMP_VAL = ini->GetFloat(section, "fDisapearValue", 5.f);
 
     VantId = 2;
-    delete ini;
     // UNGUARD
 }
 

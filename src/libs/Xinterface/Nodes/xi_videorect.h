@@ -1,5 +1,4 @@
-#ifndef _XI_VIDEORECT_H
-#define _XI_VIDEORECT_H
+#pragma once
 
 #include "..//inode.h"
 
@@ -35,5 +34,3 @@ class CXI_VIDEORECT : public CINODE
     FXYRECT m_rectTex;
     entid_t m_eiVideo;
 };
-
-#endif

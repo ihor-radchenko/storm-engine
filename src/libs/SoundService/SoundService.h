@@ -1,5 +1,4 @@
-#ifndef _SOUNDSERVICE_H_
-#define _SOUNDSERVICE_H_
+#pragma once
 
 #include "Cvector.h"
 #include "SoundDefines.h"
@@ -131,7 +130,7 @@ class SoundService : public VSoundService
     const char *GetRandomName(tAlias *_alias) const;
     int GetAliasIndexByName(const char *szAliasName);
     void AnalyseNameStringAndAddToAlias(tAlias *_alias, const char *in_string) const;
-    void AddAlias(INIFILE *_iniFile, char *_sectionName);
+    void AddAlias(INIFILE &_iniFile, char *_sectionName);
     void LoadAliasFile(const char *_filename) override;
     void InitAliases();
 
@@ -213,4 +212,3 @@ class SoundService : public VSoundService
 
     void ProcessFader(int idx);
 };
-#endif // !defined

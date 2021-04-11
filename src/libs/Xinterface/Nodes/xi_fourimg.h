@@ -1,5 +1,4 @@
-#ifndef _XI_FOURIMAGE_
-#define _XI_FOURIMAGE_
+#pragma once
 
 #include "../inode.h"
 
@@ -91,5 +90,3 @@ class CXI_FOURIMAGE : public CINODE
     int m_nMaxBlindCounter;      // maximum frames counter for change of color type
     uint32_t m_dwCurSelectColor; // current color for select item show
 };
-
-#endif

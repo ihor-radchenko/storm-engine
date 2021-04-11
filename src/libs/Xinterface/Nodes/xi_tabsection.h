@@ -1,5 +1,4 @@
-#ifndef __XI_TABSECTION_H__
-#define __XI_TABSECTION_H__
+#pragma once
 
 #include "../inode.h"
 
@@ -58,5 +57,3 @@ class CXI_TABSECTION : public CINODE
     uint32_t m_dwArrowColor;
     uint32_t m_dwBookmarkColor;
 };
-
-#endif

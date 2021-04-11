@@ -1,5 +1,4 @@
-#ifndef _XI_BACK_SCENE_H
-#define _XI_BACK_SCENE_H
+#pragma once
 
 #include "../xdefines.h"
 #include "Entity.h"
@@ -219,5 +218,3 @@ class InterfaceBackScene : public Entity
     void DrawParticles(void *prts, long num, long size, long texture, const char *tech, bool isEx = false,
                        long numU = 0);
 };
-
-#endif

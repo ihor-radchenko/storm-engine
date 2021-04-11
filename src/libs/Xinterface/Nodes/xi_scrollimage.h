@@ -1,5 +1,4 @@
-#ifndef _XI_SCROLLIMAGE_H
-#define _XI_SCROLLIMAGE_H
+#pragma once
 
 #include "..//inode.h"
 
@@ -138,5 +137,3 @@ class CXI_SCROLLIMAGE : public CINODE
     int m_nListSize;
     IMAGEDESCRIBE *m_Image;
 };
-
-#endif

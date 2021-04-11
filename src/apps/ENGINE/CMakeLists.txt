@@ -10,8 +10,6 @@ add_executable(${PROJECT_NAME} WIN32
     data.h
     dstring_codec.h
     expression.cpp
-    externs.cpp
-    externs.h
     file_service.cpp
     file_service.h
     fs.cpp
@@ -77,6 +75,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
     common_h
+    util
     
     animals
     animation

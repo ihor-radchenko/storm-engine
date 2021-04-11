@@ -1,5 +1,4 @@
-#ifndef _MESSAGE_H_
-#define _MESSAGE_H_
+#pragma once
 
 #include <cstdarg>
 #include <cstring>
@@ -165,5 +164,3 @@ class MESSAGE
         return mem_PTR;
     }
 };
-
-#endif

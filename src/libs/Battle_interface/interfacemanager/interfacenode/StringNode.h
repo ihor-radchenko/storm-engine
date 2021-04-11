@@ -1,5 +1,4 @@
-#ifndef BIManager_StringNode_H
-#define BIManager_StringNode_H
+#pragma once
 
 #include "BaseNode.h"
 
@@ -17,5 +16,3 @@ class BI_StringNode : public BI_BaseNode
   protected:
     IBIString *m_pStr;
 };
-
-#endif

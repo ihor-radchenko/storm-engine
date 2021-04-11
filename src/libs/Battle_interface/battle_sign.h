@@ -1,5 +1,4 @@
-#ifndef _BATTLE_SIGN_H
-#define _BATTLE_SIGN_H
+#pragma once
 
 #include "bi_defines.h"
 #include <string>
@@ -123,5 +122,3 @@ class BISignIcon
     long m_nMaxSquareQ;
     long m_nSignQ;
 };
-
-#endif

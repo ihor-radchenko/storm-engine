@@ -1,5 +1,4 @@
-#ifndef _WM_SHIPSIGN_H
-#define _WM_SHIPSIGN_H
+#pragma once
 
 #include "../battle_sign.h"
 #include "../bi_defines.h"
@@ -18,5 +17,3 @@ class WMShipIcon : public BISignIcon
     long CalculateSignQuantity() override;
     void UpdateChildrens() override;
 };
-
-#endif

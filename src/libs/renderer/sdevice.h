@@ -1,5 +1,4 @@
-#ifndef __SDEVICE_H__
-#define __SDEVICE_H__
+#pragma once
 
 #include "Effects.h"
 #include "Font.h"
@@ -476,9 +475,9 @@ class DX9RENDER : public VDX9RENDER
     HRESULT ImageBlt(long nTextureId, RECT *pDstRect, RECT *pSrcRect) override;
 
     void MakeScreenShot();
-    bool LoadTextureSurface(HANDLE file, IDirect3DSurface9 *suface, uint32_t mipSize, uint32_t width, uint32_t height,
-                            bool isSwizzled);
-    uint32_t LoadCubmapSide(HANDLE file, IDirect3DCubeTexture9 *tex, D3DCUBEMAP_FACES face, uint32_t numMips,
+    bool LoadTextureSurface(std::fstream &fileS, IDirect3DSurface9 *suface, uint32_t mipSize, uint32_t width,
+                            uint32_t height, bool isSwizzled);
+    uint32_t LoadCubmapSide(std::fstream &fileS, IDirect3DCubeTexture9 *tex, D3DCUBEMAP_FACES face, uint32_t numMips,
                             uint32_t mipSize, uint32_t size, bool isSwizzled);
 
     // core interface
@@ -744,5 +743,3 @@ bool SetCurFont (long fontID); // returns true if the given font is installed
 
     void RecompileEffects();
 };
-
-#endif

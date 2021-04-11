@@ -1,5 +1,4 @@
-#ifndef _BI_UTILS_H_
-#define _BI_UTILS_H_
+#pragma once
 
 #include "bi_defines.h"
 #include <string>
@@ -119,5 +118,3 @@ class BIUtils
     static uint32_t g_dwBlinkColor;
     //---------------------------------------
 };
-
-#endif

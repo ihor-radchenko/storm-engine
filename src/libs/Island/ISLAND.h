@@ -1,5 +1,4 @@
-#ifndef _ISLAND_H_
-#define _ISLAND_H_
+#pragma once
 
 #include "../Sea_ai/AIFlowGraph.h"
 #include "Island_Base.h"
@@ -112,9 +111,10 @@ class ISLAND : public ISLAND_BASE
     void AddLocationModel(entid_t eid, char *pIDStr, char *pStr);
 
     // debug
-    void DoZapSuperGenerator();
+    // dead code
+    /*void DoZapSuperGenerator();
     void DoZapSuperGeneratorInnerDecodeFiles(const char *sub_dir, const char *mask);
-    bool DoZapSuperGeneratorDecodeFile(const char *sname);
+    bool DoZapSuperGeneratorDecodeFile(const char *sname);*/
 
   public:
     ISLAND();
@@ -184,5 +184,3 @@ class ISLAND : public ISLAND_BASE
         return fCurrentImmersion;
     };
 };
-
-#endif

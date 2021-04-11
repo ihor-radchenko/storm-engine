@@ -2,8 +2,7 @@
 //    LocCrabs
 //============================================================================================
 
-#ifndef _LocCrabs_h_
-#define _LocCrabs_h_
+#pragma once
 
 #include "dx9render.h"
 #include "vmodule_api.h"
@@ -49,5 +48,3 @@ class LocCrabs : public Entity
     LocCrab crab[32];
     long num;
 };
-
-#endif

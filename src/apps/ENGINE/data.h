@@ -1,5 +1,4 @@
-#ifndef _DATA_H_
-#define _DATA_H_
+#pragma once
 
 #include "token.h"
 #include "vdata.h"
@@ -163,5 +162,3 @@ class DATA : public VDATA
 
     void Release();
 };
-
-#endif

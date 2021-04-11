@@ -1,8 +1,7 @@
 // ==================================================================== ||
 // Ship tie camera                                                      ||
 // ==================================================================== ||
-#ifndef _DECK_CAMERA_H_
-#define _DECK_CAMERA_H_
+#pragma once
 
 #include "Common_Camera.h"
 #include "dx9render.h"
@@ -92,5 +91,3 @@ class DECK_CAMERA : public COMMON_CAMERA
     void Save(CSaveLoad *pSL) override;
     void Load(CSaveLoad *pSL) override;
 };
-
-#endif

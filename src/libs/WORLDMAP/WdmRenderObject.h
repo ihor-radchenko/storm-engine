@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmRenderObject_H_
-#define _WdmRenderObject_H_
+#pragma once
 
 #include "attributes.h"
 #include "dx9render.h"
@@ -45,5 +44,3 @@ class WdmRenderObject
     WdmRenderObject *nextObject;
     static WdmRenderObject *firstObject;
 };
-
-#endif

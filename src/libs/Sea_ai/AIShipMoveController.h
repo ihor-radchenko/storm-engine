@@ -1,5 +1,4 @@
-#ifndef AISHIPMOVECONTROLLER_HPP
-#define AISHIPMOVECONTROLLER_HPP
+#pragma once
 
 #include "AIFlowGraph.h"
 #include "Sd2_h/VAI_ObjBase.h"
@@ -66,5 +65,3 @@ class AIShipMoveController
     void Save(CSaveLoad *pSL) const;
     void Load(CSaveLoad *pSL);
 };
-
-#endif

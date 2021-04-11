@@ -1,5 +1,4 @@
-#ifndef _STRINGS_LIST_H_
-#define _STRINGS_LIST_H_
+#pragma once
 
 //-------------------------------------------------------------------------------------------------
 // Simple class for creating and keeping in memory strings list
@@ -42,5 +41,3 @@ class STRINGS_LIST
     void CacheString(uint32_t code);
     uint32_t MakeHashValue(const char *string);
 };
-
-#endif

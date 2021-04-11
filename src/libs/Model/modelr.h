@@ -1,5 +1,4 @@
-#ifndef _MODELR_H_
-#define _MODELR_H_
+#pragma once
 
 #include "dx9render.h"
 #include "geometry.h"
@@ -139,5 +138,3 @@ class MODELR : public MODEL
     char blendTechnique[128];
     float alpha1, alpha2;
 };
-
-#endif

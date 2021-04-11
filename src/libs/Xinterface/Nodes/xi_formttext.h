@@ -1,5 +1,4 @@
-#ifndef _FORMTTEXT_H_
-#define _FORMTTEXT_H_
+#pragma once
 
 #include "../inode.h"
 
@@ -138,5 +137,3 @@ class CXI_FORMATEDTEXT : public CINODE
     void SetCurLine(STRING_DESCRIBER *pNewCurLine);
     void ScrollerUpdate();
 };
-
-#endif

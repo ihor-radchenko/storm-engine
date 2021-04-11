@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmCameraStdCtrl_H_
-#define _WdmCameraStdCtrl_H_
+#pragma once
 
 #include "WdmCamera.h"
 
@@ -45,5 +44,3 @@ class WdmCameraStdCtrl : public WdmCamera
     float mdx, mdy, mzoom;
     bool lastFreeMode;
 };
-
-#endif

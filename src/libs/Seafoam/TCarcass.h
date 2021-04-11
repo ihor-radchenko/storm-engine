@@ -1,5 +1,4 @@
-#ifndef _TCARCASS_H_
-#define _TCARCASS_H_
+#pragma once
 
 #include "Cvector.h"
 #include "Matrix.h"
@@ -62,5 +61,3 @@ class TCarcass
     VDX9RENDER *renderer;
     int iBuffer, vBuffer;
 };
-
-#endif

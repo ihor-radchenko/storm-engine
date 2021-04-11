@@ -1,5 +1,4 @@
-#ifndef _SHIPINFOIMAGES_H_
-#define _SHIPINFOIMAGES_H_
+#pragma once
 
 #include "ships_list.h"
 
@@ -78,5 +77,3 @@ class ShipInfoImages
     CVECTOR m_vRightDir;
     float m_fImgScale;
 };
-
-#endif

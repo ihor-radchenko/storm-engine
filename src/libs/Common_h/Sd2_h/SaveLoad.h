@@ -1,5 +1,4 @@
-#ifndef SAVE_LOAD_HPP
-#define SAVE_LOAD_HPP
+#pragma once
 
 #include <string>
 
@@ -236,5 +235,3 @@ class CSaveLoad
         return (pV) ? pV->GetAClass() : nullptr;
     }
 };
-
-#endif

@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Player_H_
-#define _Player_H_
+#pragma once
 
 #include "NPCharacter.h"
 
@@ -81,5 +80,3 @@ class Player : public NPCharacter
     float kSMReload;
     LocationCamera *locCam;
 };
-
-#endif

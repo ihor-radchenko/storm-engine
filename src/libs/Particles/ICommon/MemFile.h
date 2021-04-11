@@ -1,7 +1,6 @@
 // Class for working with memory as with a file ...
 
-#ifndef _MEMORY_FILE_
-#define _MEMORY_FILE_
+#pragma once
 
 #include <cstdint>
 #include <cstring>
@@ -161,5 +160,3 @@ class MemFile
         return Data;
     }
 };
-
-#endif

@@ -4,8 +4,7 @@
 // Triangle
 //============================================================================================
 
-#ifndef _Triangle_h_
-#define _Triangle_h_
+#pragma once
 
 #pragma pack(push, 1)
 
@@ -373,5 +372,3 @@ inline long Triangle::z_sysClipTriangleEdgePlane(Plane plane, Vector src[8], Vec
 }
 
 #pragma pack(pop)
-
-#endif

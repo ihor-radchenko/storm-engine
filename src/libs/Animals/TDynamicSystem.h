@@ -1,5 +1,4 @@
-#ifndef _TDYNAMICSYSTEM_H_
-#define _TDYNAMICSYSTEM_H_
+#pragma once
 
 #include "TDynamicObject.h"
 
@@ -23,5 +22,3 @@ class TDynamicSystem
     TDynamicObject *deflectors[MAX_DYNAMIC_OBJECTS];
 };
 //--------------------------------------------------------------------
-
-#endif

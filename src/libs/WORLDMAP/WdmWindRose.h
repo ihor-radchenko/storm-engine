@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmWindRose_H_
-#define _WdmWindRose_H_
+#pragma once
 
 #include "WdmRenderModel.h"
 
@@ -43,5 +42,3 @@ class WdmWindRose : public WdmRenderModel
   private:
     long shadowTexture;
 };
-
-#endif

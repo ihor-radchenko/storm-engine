@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Lighter_H_
-#define _Lighter_H_
+#pragma once
 
 #include "LightProcessor.h"
 
@@ -69,5 +68,3 @@ class Lighter : public Entity
     float waitChange;
     bool isInited, autoTrace, autoSmooth;
 };
-
-#endif

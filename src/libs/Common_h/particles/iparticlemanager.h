@@ -5,8 +5,7 @@
 //*
 //****************************************************************
 
-#ifndef PARTICLES_MANAGER_INTERFACE
-#define PARTICLES_MANAGER_INTERFACE
+#pragma once
 
 #include "../dx9render.h"
 
@@ -80,5 +79,3 @@ class IParticleManager
 
     virtual void OpenDefaultProject() = 0;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _S_DEBUG_H_
-#define _S_DEBUG_H_
+#pragma once
 
 #define PROJECT_NAME "project.df"
 
@@ -62,12 +61,15 @@ class S_DEBUG
     SOURCE_VIEW *SourceView;
     WATCHER_LIST *WatcherList;
 
-    S_DEBUG();
+    S_DEBUG() = default;
     ~S_DEBUG();
     HWND GetWindowHandle()
     {
         return hMain;
     };
+
+    void Init();
+
     bool OpenDebugWindow(HINSTANCE hInstance);
     bool OpenDebugWindow_NT(HINSTANCE hInstance);
     void OpenNewFile();
@@ -96,4 +98,3 @@ class S_DEBUG
     long GetRecentFileALine(const char *pFileName);
     void SaveRecentFileALine(const char *pFileName, long nLine);
 };
-#endif

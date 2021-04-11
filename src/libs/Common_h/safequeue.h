@@ -1,5 +1,4 @@
-#ifndef __SAFE_QUEUE__H__INCLUDED_
-#define __SAFE_QUEUE__H__INCLUDED_
+#pragma once
 
 #include "windows.h"
 
@@ -100,5 +99,3 @@ template <class Type> class SafeQueue
         DeleteCriticalSection(&lock);
     };
 };
-
-#endif // __SAFE_QUEUE__H__INCLUDED_

@@ -1,5 +1,4 @@
-#ifndef _XI_KEYCHANGER_H_
-#define _XI_KEYCHANGER_H_
+#pragma once
 
 #include "../inode.h"
 
@@ -45,5 +44,3 @@ class CXI_KEYCHANGER : public CINODE
     long m_keysQuantity;
     bool m_bKeyCheck;
 };
-
-#endif

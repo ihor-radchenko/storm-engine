@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmMerchantShip_H_
-#define _WdmMerchantShip_H_
+#pragma once
 
 #include "WdmEnemyShip.h"
 
@@ -46,5 +45,3 @@ class WdmMerchantShip : public WdmEnemyShip
     float gotoRad;
     bool isEnableSetDir;
 };
-
-#endif

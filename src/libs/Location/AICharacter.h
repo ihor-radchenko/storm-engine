@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _AICharacter_H_
-#define _AICharacter_H_
+#pragma once
 
 #include "Character.h"
 
@@ -147,5 +146,3 @@ class AICharacter : public Character
     bool bMusketer;
     bool bMusketerNoMove;
 };
-
-#endif

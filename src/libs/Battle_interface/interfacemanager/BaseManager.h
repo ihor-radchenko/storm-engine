@@ -1,5 +1,4 @@
-#ifndef InterfaceBaseManager_h
-#define InterfaceBaseManager_h
+#pragma once
 
 #include "../bi_defines.h"
 #include "dx9render.h"
@@ -71,5 +70,3 @@ class BI_ManagerBase : public Entity
     BIImageRender *m_pImgRender;
     BI_MousePointerBase *m_pMouse;
 };
-
-#endif

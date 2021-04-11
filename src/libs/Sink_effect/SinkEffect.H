@@ -1,5 +1,4 @@
-#ifndef _SINKEFFECT_H_
-#define _SINKEFFECT_H_
+#pragma once
 
 #include "CVECTOR.h"
 #include "SinkSplashDefines.h"
@@ -47,5 +46,3 @@ class SINKEFFECT : public Entity
     VDX9RENDER *renderer;
     SEA_BASE *sea;
 };
-
-#endif

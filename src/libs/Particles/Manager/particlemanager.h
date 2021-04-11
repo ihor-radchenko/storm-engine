@@ -5,8 +5,7 @@
 //*
 //****************************************************************
 
-#ifndef PARTICLES_MANAGER_IMPLEMENTATION
-#define PARTICLES_MANAGER_IMPLEMENTATION
+#pragma once
 
 #include "particles/iparticlemanager.h"
 
@@ -163,5 +162,3 @@ class ParticleManager : public IParticleManager
 
     void OpenDefaultProject() override;
 };
-
-#endif

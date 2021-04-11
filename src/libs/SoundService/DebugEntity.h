@@ -1,5 +1,4 @@
-#ifndef _SOUND_VISUALISATION_H_
-#define _SOUND_VISUALISATION_H_
+#pragma once
 
 #include "dx9render.h"
 
@@ -37,5 +36,3 @@ class SoundVisualisationEntity : public Entity
     void SetMasterSoundService(SoundService *pSoundService);
     void Wakeup() const;
 };
-
-#endif

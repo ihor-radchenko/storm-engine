@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Pillar_H_
-#define _Pillar_H_
+#pragma once
 
 #include "vmodule_api.h"
 
@@ -91,5 +90,3 @@ inline float Pillar::Z()
 {
     return z;
 }
-
-#endif

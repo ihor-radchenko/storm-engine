@@ -1,5 +1,4 @@
-#ifndef _XI_BOUNDER_H_
-#define _XI_BOUNDER_H_
+#pragma once
 
 #include "../inode.h"
 
@@ -47,5 +46,3 @@ class CXI_BOUNDER : public CINODE
     long m_nHorzLineQuantity;
     long m_nVertLineQuantity;
 };
-
-#endif

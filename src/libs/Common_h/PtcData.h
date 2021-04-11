@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _PtcData_H_
-#define _PtcData_H_
+#pragma once
 
 #include "Cvector.h"
 #include "ptc.h"
@@ -135,5 +134,3 @@ class PtcData
     DbgVertex *dbgTriangles;
     DbgVertex *dbgEdges;
 };
-
-#endif

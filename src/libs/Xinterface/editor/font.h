@@ -1,5 +1,4 @@
-#ifndef _GI_EDITOR_FONT_H
-#define _GI_EDITOR_FONT_H
+#pragma once
 
 #include "../inode.h"
 
@@ -37,5 +36,3 @@ class GIFont
     float m_fScale;
     float m_fHeight;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef BIManager_ImageNode_H
-#define BIManager_ImageNode_H
+#pragma once
 
 #include "../../bi_defines.h"
 #include "BaseNode.h"
@@ -18,5 +17,3 @@ class BI_ImageNode : public BI_BaseNode
   protected:
     IBIImage *m_pImage;
 };
-
-#endif

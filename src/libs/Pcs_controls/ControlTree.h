@@ -1,5 +1,4 @@
-#ifndef _CONTROLTREE_H_
-#define _CONTROLTREE_H_
+#pragma once
 
 #include "controls.h"
 #include "vmodule_api.h"
@@ -59,5 +58,3 @@ struct ControlTree
 
     std::vector<OutControlInfo> m_aOutControlList;
 };
-
-#endif

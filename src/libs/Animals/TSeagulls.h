@@ -1,5 +1,4 @@
-#ifndef _TSEAGULLS_H_
-#define _TSEAGULLS_H_
+#pragma once
 
 #include "../SoundService/VSoundService.h"
 #include "AnimalsDefines.h"
@@ -70,5 +69,3 @@ class TSeagulls
     CVECTOR cameraPos, cameraAng;
     float startY;
 };
-
-#endif // !defined

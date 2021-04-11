@@ -1,5 +1,4 @@
-#ifndef _PARTICLE_DATA_FLOAT_H_
-#define _PARTICLE_DATA_FLOAT_H_
+#pragma once
 
 #include "../../ICommon/MemFile.h"
 #include <string>
@@ -27,5 +26,3 @@ class DataFloat
     void SetName(const char *szName);
     const char *GetName() const;
 };
-
-#endif

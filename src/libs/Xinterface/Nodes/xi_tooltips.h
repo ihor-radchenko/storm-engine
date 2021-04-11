@@ -1,5 +1,4 @@
-#ifndef _XI_TOOLTIP_H_
-#define _XI_TOOLTIP_H_
+#pragma once
 
 #include "../xdefines.h"
 #include "dx9render.h"
@@ -76,5 +75,3 @@ class CXI_ToolTip
     VXSERVICE *m_pPicService;
     VSTRSERVICE *m_pStrService;
 };
-
-#endif

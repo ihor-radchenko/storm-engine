@@ -1,5 +1,4 @@
-#ifndef _BREAKPOINTS_TABLE_H_
-#define _BREAKPOINTS_TABLE_H_
+#pragma once
 
 #include "core.h"
 #include <vector>
@@ -15,7 +14,6 @@ class BREAKPOINTS_TABLE
     uint32_t nPoints;
     std::vector<BREAKPOINT_DESC> pTable;
     char ProjectName[MAX_PATH];
-    VFILE_SERVICE *fio;
     bool bReleased;
 
   public:
@@ -35,5 +33,3 @@ class BREAKPOINTS_TABLE
     };
     void UpdateProjectFile();
 };
-
-#endif

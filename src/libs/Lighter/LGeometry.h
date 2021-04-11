@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _LGeometry_H_
-#define _LGeometry_H_
+#pragma once
 
 #include "LTypes.h"
 #include "model.h"
@@ -84,5 +83,3 @@ class LGeometry
     char modelsPath[512];
     char lightPath[512];
 };
-
-#endif

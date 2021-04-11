@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Sharks_H_
-#define _Sharks_H_
+#pragma once
 
 #include "Animation.h"
 #include "Island_Base.h"
@@ -128,5 +127,3 @@ class Sharks : public Entity
     uint16_t indeces[7 * 10 * 3];
     Vertex vrt[7 * 10];
 };
-
-#endif

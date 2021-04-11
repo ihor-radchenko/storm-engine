@@ -1,5 +1,4 @@
-#ifndef __XI_TEXTBUTTON_H__
-#define __XI_TEXTBUTTON_H__
+#pragma once
 
 #include "..//inode.h"
 
@@ -86,5 +85,3 @@ class CXI_TEXTBUTTON : public CINODE
 
     float m_fShadowScale;
 };
-
-#endif

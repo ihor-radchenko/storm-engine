@@ -1,5 +1,4 @@
-#ifndef _S_EVENTMSG_H_
-#define _S_EVENTMSG_H_
+#pragma once
 
 #include "message_script.h"
 
@@ -57,5 +56,3 @@ class S_EVENTMSG
         bInvalide = true;
     };
 };
-
-#endif

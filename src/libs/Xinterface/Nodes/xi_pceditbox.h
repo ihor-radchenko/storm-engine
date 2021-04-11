@@ -1,5 +1,4 @@
-#ifndef _XI_PCEDITBOX_H_
-#define _XI_PCEDITBOX_H_
+#pragma once
 
 #include "..//inode.h"
 
@@ -60,5 +59,3 @@ class CXI_PCEDITBOX : public CINODE
 
     std::string m_sExcludeChars;
 };
-
-#endif

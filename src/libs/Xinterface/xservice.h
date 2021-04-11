@@ -1,5 +1,4 @@
-#ifndef _XISERVICE_H
-#define _XISERVICE_H
+#pragma once
 
 #include "vxservice.h"
 #include "xdefines.h"
@@ -116,5 +115,3 @@ class ComboString
                        char *fontlist);
     void ComboStringRelease(int comboStrID);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEA_SHIP_AI_HPP
-#define SEA_SHIP_AI_HPP
+#pragma once
 
 #include "AICannon.h"
 #include "AIShipCameraController.h"
@@ -406,5 +405,3 @@ class AIShipBoat : public AIShip
     AIShipBoat();
     virtual ~AIShipBoat();
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _XI_QUESTTITLES_H_
-#define _XI_QUESTTITLES_H_
+#pragma once
 
 #include "..//inode.h"
 
@@ -63,5 +62,3 @@ class CXI_QUESTTITLE : public CINODE
 
     STRING_DESCRIBER *m_strList;
 };
-
-#endif

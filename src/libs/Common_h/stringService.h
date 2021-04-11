@@ -1,5 +1,4 @@
-#ifndef __VSTRINGSERVICE_H__
-#define __VSTRINGSERVICE_H__
+#pragma once
 
 #include "service.h"
 #include "vmodule_api.h"
@@ -25,5 +24,3 @@ class VSTRSERVICE : public SERVICE
     virtual void CloseUsersStringFile(long id) = 0;
     virtual char *TranslateFromUsers(long id, const char *inStr) = 0;
 };
-
-#endif

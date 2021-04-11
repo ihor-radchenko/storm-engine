@@ -8,8 +8,7 @@
 // Object controlling the movement of characters
 // ============================================================================================
 
-#ifndef _Supervisor_H_
-#define _Supervisor_H_
+#pragma once
 
 class Character;
 class LocatorArray;
@@ -90,5 +89,3 @@ class Supervisor
     bool isDelete;
     Character *player;
 };
-
-#endif

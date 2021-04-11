@@ -1,5 +1,4 @@
-#ifndef _XINTERFACE_H_
-#define _XINTERFACE_H_
+#pragma once
 
 #include "Matrix.h"
 #include "Nodes/xi_util.h"
@@ -8,6 +7,8 @@
 #include "editor/editor.h"
 #include "inode.h"
 #include "vmodule_api.h"
+
+#include <filesystem>
 
 class CXI_WINDOW;
 
@@ -291,14 +292,14 @@ class XINTERFACE : public XINTERFACE_BASE
     {
         char *save_file_name;
         long file_size;
-        FILETIME time;
+        std::filesystem::file_time_type time;
 
         SAVE_FIND_DATA *next;
     };
 
     SAVE_FIND_DATA *m_pSaveFindRoot;
     void ReleaseSaveFindList();
-    void AddFindData(const char *sSaveFileName, long file_size, FILETIME create_time);
+    void AddFindData(std::filesystem::path filePath);
     void Sorting_FindData();
     SAVE_FIND_DATA *GetSaveDataByIndex(int n) const;
 
@@ -433,5 +434,3 @@ class CONTROLS_CONTAINER : public Entity
 
     CONTEINER_DESCR *FindContainer(const char *sContainer);
 };
-
-#endif

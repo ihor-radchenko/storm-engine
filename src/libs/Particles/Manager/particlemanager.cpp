@@ -111,7 +111,7 @@ bool ParticleManager::OpenProject(const char *FileName)
     // LongFileName += FileName;
     // LongFileName.AddExtention(".prj");
 
-    auto *IniFile = fio->OpenIniFile((char *)pathStr.c_str());
+    auto IniFile = fio->OpenIniFile(pathStr.c_str());
     if (!IniFile)
     {
         core.Trace("Can't find project '%s'", pathStr.c_str());
@@ -151,8 +151,6 @@ bool ParticleManager::OpenProject(const char *FileName)
             break;
         pDataCache->CacheSystem(IniStringBuffer);
     }
-
-    delete IniFile;
 
     // FIX ME !
     // If there will be asynchronous loading it is wrong
@@ -696,18 +694,10 @@ void ParticleManager::OpenDefaultProject()
 
     SetProjectTexture("particles_list.tga");
 
-    HANDLE foundFile;
-    WIN32_FIND_DATA findData;
-    if ((foundFile = fio->_FindFirstFile("resource\\particles\\*.xps", &findData)) != INVALID_HANDLE_VALUE)
+    const auto vFilenames = fio->_GetPathsOrFilenamesByMask("resource\\particles", "*.xps", false);
+    for (std::string curName : vFilenames)
     {
-        do
-        {
-            // core.Trace("Cache system - %s", findData.cFileName);
-            std::string FileName = utf8::ConvertWideToUtf8(findData.cFileName);
-            pDataCache->CacheSystem(FileName.c_str());
-        } while (fio->_FindNextFile(foundFile, &findData) == TRUE);
-        if (foundFile != INVALID_HANDLE_VALUE)
-            fio->_FindClose(foundFile);
+        pDataCache->CacheSystem(curName.c_str());
     }
 
     CreateGeomCache();

@@ -1,5 +1,4 @@
-#ifndef _BILLBOARD_H_
-#define _BILLBOARD_H_
+#pragma once
 
 #include "../math3D.h"
 
@@ -41,5 +40,3 @@ struct ParticleBillboard
         Visible = false;
     }
 };
-
-#endif

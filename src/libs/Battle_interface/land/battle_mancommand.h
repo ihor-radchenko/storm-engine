@@ -1,5 +1,4 @@
-#ifndef _BATTLE_MANCOMMAND_H_
-#define _BATTLE_MANCOMMAND_H_
+#pragma once
 
 #include "../battle_command.h"
 
@@ -20,5 +19,3 @@ class BIManCommandList : public BICommandList
     long AbilityAdding();
     long AddCancelIcon();
 };
-
-#endif

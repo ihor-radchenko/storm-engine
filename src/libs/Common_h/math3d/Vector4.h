@@ -4,8 +4,7 @@
 // Vector4
 //============================================================================================
 
-#ifndef _Vector4_h_
-#define _Vector4_h_
+#pragma once
 
 #include "Vector.h"
 
@@ -228,5 +227,3 @@ inline void Vector4::Normalize()
 }
 
 #pragma pack(pop)
-
-#endif

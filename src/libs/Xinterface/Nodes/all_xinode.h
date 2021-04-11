@@ -1,5 +1,4 @@
-#ifndef _ALL_XINODE_H
-#define _ALL_XINODE_H
+#pragma once
 
 #include "xi_2picture.h"
 #include "xi_VImgScroll.h"
@@ -37,5 +36,3 @@
 #include "xi_video.h"
 #include "xi_videorect.h"
 #include "xi_window.h"
-
-#endif

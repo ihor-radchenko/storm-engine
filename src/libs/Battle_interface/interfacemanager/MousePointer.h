@@ -1,5 +1,4 @@
-#ifndef MousePointer_h
-#define MousePointer_h
+#pragma once
 
 #include "BaseManager.h"
 #include <string>
@@ -42,5 +41,3 @@ class MousePointer : public BI_MousePointerBase
     void SetCurrentCursor();
     RECT GetCurrentCursorIconPos() const;
 };
-
-#endif

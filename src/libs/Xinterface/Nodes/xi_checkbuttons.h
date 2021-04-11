@@ -1,5 +1,4 @@
-#ifndef __XI_CHECKBUTTONS_H__
-#define __XI_CHECKBUTTONS_H__
+#pragma once
 
 #include "../inode.h"
 #include "../xdefines.h"
@@ -106,5 +105,3 @@ class CXI_CHECKBUTTONS : public CINODE
     std::string m_sDisablePicture;
     uint32_t m_dwDisablePicColor;
 };
-
-#endif

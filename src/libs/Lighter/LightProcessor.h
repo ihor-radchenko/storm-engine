@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _LightProcessor_H_
-#define _LightProcessor_H_
+#pragma once
 
 #include "LGeometry.h"
 #include "LighterLights.h"
@@ -58,5 +57,3 @@ class LightProcessor
     long smoothVertex;
     long blurVertex;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef AISHIPTASKCONTROLLER_HPP
-#define AISHIPTASKCONTROLLER_HPP
+#pragma once
 #include "../../Shared/sea_ai/Script_defines.h"
 
 // ============================================================================
@@ -120,5 +119,3 @@ class AIShipTaskController
     void Save(CSaveLoad *pSL);
     void Load(CSaveLoad *pSL);
 };
-
-#endif

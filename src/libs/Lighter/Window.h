@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Window_H_
-#define _Window_H_
+#pragma once
 
 #include "LTypes.h"
 #include "LighterLights.h"
@@ -164,5 +163,3 @@ class Window
     char ver[256];
     char stringBuffer[1024];
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _XI_IMAGE_OBJECT_H
-#define _XI_IMAGE_OBJECT_H
+#pragma once
 
 #include "../inode.h"
 
@@ -90,5 +89,3 @@ class CXI_IMAGE
     void UpdateTexture();
     void UpdatePosition();
 };
-
-#endif

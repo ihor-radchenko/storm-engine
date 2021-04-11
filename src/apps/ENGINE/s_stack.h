@@ -1,5 +1,4 @@
-#ifndef _S_STACK_H_
-#define _S_STACK_H_
+#pragma once
 
 #include "data.h"
 #include "v_s_stack.h"
@@ -32,5 +31,3 @@ class S_STACK : public VS_STACK
     }
     void InvalidateFrom(uint32_t index);
 };
-
-#endif

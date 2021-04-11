@@ -1,5 +1,4 @@
-#ifndef _FIELD_LIST_H
-#define _FIELD_LIST_H
+#pragma once
 
 #include "../../icommon/memfile.h"
 #include "../../icommon/types.h"
@@ -97,5 +96,3 @@ class FieldList
     // and there will be no unnecessary garbage ...
     void Convert(DataDescripion *pDataDescriptor);
 };
-
-#endif

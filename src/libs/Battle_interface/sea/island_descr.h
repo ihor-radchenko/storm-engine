@@ -1,5 +1,4 @@
-#ifndef _ISLAND_DESCR_H_
-#define _ISLAND_DESCR_H_
+#pragma once
 
 #include "../bi_defines.h"
 
@@ -67,5 +66,3 @@ class ISLAND_DESCRIBER
 };
 
 extern ISLAND_DESCRIBER g_IslandDescr;
-
-#endif

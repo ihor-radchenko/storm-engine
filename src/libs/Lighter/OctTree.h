@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _OctTree_H_
-#define _OctTree_H_
+#pragma once
 
 #include "LGeometry.h"
 
@@ -63,5 +62,3 @@ class OctTree
     CVECTOR vertsPos, vertsPosMin, vertsPosMax;
     float vertsR;
 };
-
-#endif

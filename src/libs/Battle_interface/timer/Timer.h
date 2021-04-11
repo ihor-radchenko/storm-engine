@@ -1,5 +1,4 @@
-#ifndef _BI_TIMER_H_
-#define _BI_TIMER_H_
+#pragma once
 
 #include "../bi_defines.h"
 #include <string>
@@ -51,5 +50,3 @@ class BITimer : public Entity
     IBIImage *m_pBackImage;
     IBIImage *m_pForeImage;
 };
-
-#endif

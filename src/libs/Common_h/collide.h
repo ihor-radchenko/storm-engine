@@ -1,5 +1,4 @@
-#ifndef __COLLIDE_H__
-#define __COLLIDE_H__
+#pragma once
 
 #include "Cvector.h"
 
@@ -42,5 +41,3 @@ class COLLIDE : public SERVICE
 
     virtual entid_t GetObjectID() = 0;
 };
-
-#endif

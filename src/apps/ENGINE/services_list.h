@@ -1,5 +1,4 @@
-#ifndef _SERVICES_LIST_H_
-#define _SERVICES_LIST_H_
+#pragma once
 
 #include "service.h"
 
@@ -43,5 +42,3 @@ class SERVICES_LIST
     uint32_t GetRef(SERVICE *sp);
     void SetRef(SERVICE *sp, uint32_t ref);
 };
-
-#endif

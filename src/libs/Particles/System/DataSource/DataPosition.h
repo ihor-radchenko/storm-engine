@@ -1,5 +1,4 @@
-#ifndef _PARTICLE_DATA_POSITION_H_
-#define _PARTICLE_DATA_POSITION_H_
+#pragma once
 
 #include "../../ICommon/MemFile.h"
 
@@ -29,5 +28,3 @@ class DataPosition
     void SetName(const char *szName);
     const char *GetName() const;
 };
-
-#endif

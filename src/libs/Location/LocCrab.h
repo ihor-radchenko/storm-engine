@@ -2,8 +2,7 @@
 //    LocCrab
 //============================================================================================
 
-#ifndef _LocCrab_h_
-#define _LocCrab_h_
+#pragma once
 
 #include "LocLife.h"
 
@@ -33,5 +32,3 @@ class LocCrab : public LocLife
     float moveTime;
     bool isPanic;
 };
-
-#endif

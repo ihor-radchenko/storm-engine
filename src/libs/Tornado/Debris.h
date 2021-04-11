@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Debris_H_
-#define _Debris_H_
+#pragma once
 
 #include "../SoundService/VSoundService.h"
 #include "Matrix.h"
@@ -70,5 +69,3 @@ class Debris
     ModelInfo fly[64]; // Flying models
     long flyCounter;   // Number of flying models
 };
-
-#endif

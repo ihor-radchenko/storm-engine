@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmRenderModel_H_
-#define _WdmRenderModel_H_
+#pragma once
 
 #include "WdmObjects.h"
 #include "WdmRenderObject.h"
@@ -54,5 +53,3 @@ class WdmRenderModel : public WdmRenderObject
 
     bool drawCircle;
 };
-
-#endif

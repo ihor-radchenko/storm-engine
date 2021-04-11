@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _AnimationImp_H_
-#define _AnimationImp_H_
+#pragma once
 
 #include "Animation.h"
 
@@ -142,5 +141,3 @@ inline float &ActionPlayerImp::TimerBlend()
 {
     return kBlendTimer;
 }
-
-#endif

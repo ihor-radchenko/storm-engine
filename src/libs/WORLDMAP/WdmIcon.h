@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmIcon_H_
-#define _WdmIcon_H_
+#pragma once
 
 #include "WdmInterfaceObject.h"
 
@@ -46,5 +45,3 @@ class WdmIcon : public WdmInterfaceObject
     float skipAlpha;
     float stormAlpha;
 };
-
-#endif

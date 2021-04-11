@@ -1,5 +1,4 @@
-#ifndef _SHIPPOINTER_H_
-#define _SHIPPOINTER_H_
+#pragma once
 
 #include "Sd2_h/VAI_ObjBase.h"
 
@@ -53,5 +52,3 @@ class SHIPPOINTER : public Entity
 
     VAI_OBJBASE *m_pShip;
 };
-
-#endif

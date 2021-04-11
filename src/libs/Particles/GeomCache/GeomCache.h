@@ -1,5 +1,4 @@
-#ifndef _GEOMETRY_CACHE_
-#define _GEOMETRY_CACHE_
+#pragma once
 
 #include "geometry.h"
 #include "geos.h"
@@ -37,5 +36,3 @@ class GeomCache
     // Check if such a model exists in the cache
     bool ValidatePointer(GEOS *pModel);
 };
-
-#endif

@@ -1,39 +1,56 @@
-#include "externs.h"
-#include "fs.h"
-#include "s_debug.h"
 #include "SteamApi.hpp"
 #include "compiler.h"
+#include "file_service.h"
+#include "fs.h"
+#include "s_debug.h"
 
 #include <crtdbg.h>
 #include <dbghelp.h>
 #include <tchar.h>
 
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
+VFILE_SERVICE *fio = nullptr;
+CORE core;
+S_DEBUG CDebug;
+
+namespace
+{
 constexpr auto DUMP_FILENAME = "engine_dump.dmp";
 
-S_DEBUG CDebug;
 bool isHold = false;
+bool bActive = false;
+
+} // namespace
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 int Alert(const char *lpCaption, const char *lpText);
 void CreateMiniDump(EXCEPTION_POINTERS *pep);
-bool _loopMain();
 
-bool _loopMain()
+bool runExceptionWrapped()
 {
-    bool runResult = false;
+    try
+    {
+        return core.Run();
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::critical(e.what());
+        throw;
+    }
+}
 
+bool runSehWrapped()
+{
     __try
     {
-        runResult = core.Run();
+        return runExceptionWrapped();
     }
     __except (CreateMiniDump(GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
     {
+        std::terminate();
     }
-
-    return runResult;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
@@ -46,29 +63,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         return 0;
     }
 
-
+    // Init FS
+    FILE_SERVICE File_Service;
     fio = &File_Service;
-    //_VSYSTEM_API = &System_Api;
+
+    // Init core
+    core.Init();
 
     /* Init stash */
     create_directories(fs::GetLogsPath());
     create_directories(fs::GetSaveDataPath());
 
-     /* Delete old dump file */
+    /* Delete old dump file */
     std::filesystem::path log_path = fs::GetStashPath() / std::filesystem::u8path(DUMP_FILENAME);
     fio->_DeleteFile(log_path.string().c_str());
 
     /* Init system log */
     log_path = fs::GetLogsPath() / std::filesystem::u8path("system.log");
     fio->_DeleteFile(log_path.string().c_str());
-    core.tracelog = spdlog::basic_logger_mt("system", log_path.string(), true);
-    spdlog::set_default_logger(core.tracelog);
+    core.tracelog = spdlog::basic_logger_st("system", log_path.string(), true);
     core.tracelog->set_level(spdlog::level::trace);
+    core.tracelog->flush_on(spdlog::level::critical);
+    set_default_logger(core.tracelog);
 
     /* Init compile and error/warning logs */
     log_path = fs::GetLogsPath() / std::filesystem::u8path(COMPILER_LOG_FILENAME);
     fio->_DeleteFile(log_path.string().c_str());
-    core.Compiler->tracelog = spdlog::basic_logger_mt("compile", log_path.string(), true);
+    core.Compiler->tracelog = spdlog::basic_logger_st("compile", log_path.string(), true);
     core.Compiler->tracelog->set_level(spdlog::level::trace);
     log_path = fs::GetLogsPath() / std::filesystem::u8path(COMPILER_ERRORLOG_FILENAME);
     fio->_DeleteFile(log_path.string().c_str());
@@ -78,9 +99,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     core.Compiler->warninglog = std::make_shared<spdlog::logger>("warning", core.Compiler->error_warning_sink);
     core.Compiler->warninglog->set_level(spdlog::level::trace);
 
+    // Init script debugger
+    CDebug.Init();
+
     /* Read config */
     uint32_t dwMaxFPS = 0;
-    auto *ini = File_Service.OpenIniFile(ENGINE_INI_FILE_NAME);
+    auto ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
     bool bSteam = false;
 
     if (ini)
@@ -100,8 +124,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         {
             bSteam = false;
         }
-
-        delete ini;
     }
 
     // evaluate SteamApi singleton
@@ -156,10 +178,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
                         continue;
                     dwOldTime = dwNewTime;
                 }
-
-                bool runResult = _loopMain();
-
-                //                if (!isHold && !core.Run())
+                const auto runResult = runSehWrapped();
                 if (!isHold && !runResult)
                 {
                     isHold = true;
@@ -197,7 +216,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
         core.Event("ExitApplication", nullptr);
         CDebug.Release();
         core.CleanUp();
-        File_Service.Close();
         CDebug.CloseDebugWindow();
 
         InvalidateRect(nullptr, nullptr, 0);
@@ -249,6 +267,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 void CreateMiniDump(EXCEPTION_POINTERS *pep)
 {
+    // flush logs
+    if (core.tracelog)
+    {
+        core.tracelog->flush();
+    }
+
     std::filesystem::path dmpfile = fs::GetStashPath() / std::filesystem::u8path(DUMP_FILENAME);
     // Open the file
     HANDLE hFile =

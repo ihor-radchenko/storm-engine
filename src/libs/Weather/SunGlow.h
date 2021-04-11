@@ -1,5 +1,4 @@
-#ifndef SUN_GLOW_HPP
-#define SUN_GLOW_HPP
+#pragma once
 
 #include "Typedef.h"
 #include "Weather_base.h"
@@ -135,5 +134,3 @@ class SUNGLOW : public Entity
 
     float GetSunFadeoutFactor(const CVECTOR &vSunPos, float fSunSize);
 };
-
-#endif

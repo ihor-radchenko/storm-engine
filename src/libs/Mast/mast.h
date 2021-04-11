@@ -1,9 +1,10 @@
-#ifndef _MAST_H_
-#define _MAST_H_
+#pragma once
 
 #include "collide.h"
 #include "dx9render.h"
 #include "model.h"
+
+#include <filesystem>
 
 #define SR_MOVE 1
 #define SR_STOPROTATE 2
@@ -25,7 +26,7 @@ class MAST : public Entity
     bool bModel;
     entid_t model_id, oldmodel_id;
     entid_t ship_id;
-    FILETIME ft_old;
+    std::filesystem::file_time_type ft_old;
     NODE *m_pMastNode;
 
   public:
@@ -73,5 +74,3 @@ class MAST : public Entity
     };
     MASTMOVE mm;
 };
-
-#endif

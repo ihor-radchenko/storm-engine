@@ -1,5 +1,4 @@
-#ifndef _PathTracks_h_
-#define _PathTracks_h_
+#pragma once
 
 #include "dx9render.h"
 #include "math3D.h"
@@ -35,5 +34,3 @@ class PathTracks
     Point *point;
     long numPoints;
 };
-
-#endif

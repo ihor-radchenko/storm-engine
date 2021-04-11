@@ -1,5 +1,4 @@
-#ifndef __XI_TABLE_H__
-#define __XI_TABLE_H__
+#pragma once
 
 #include "../inode.h"
 #include "../xdefines.h"
@@ -238,5 +237,3 @@ class CXI_TABLE : public CINODE
 
     std::string m_sScrollerName;
 };
-
-#endif

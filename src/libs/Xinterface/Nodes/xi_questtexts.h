@@ -1,5 +1,4 @@
-#ifndef _XI_QUESTTEXTS_H_
-#define _XI_QUESTTEXTS_H_
+#pragma once
 
 #include "..//inode.h"
 
@@ -60,5 +59,3 @@ class CXI_QUESTTEXTS : public CINODE
     STRING_DESCRIBER *m_listCur;
     int m_nAllTextStrings;
 };
-
-#endif

@@ -4,8 +4,7 @@
 // Vector
 //============================================================================================
 
-#ifndef _Vector_h_
-#define _Vector_h_
+#pragma once
 
 #include <math.h>
 #include <stdlib.h>
@@ -1156,5 +1155,3 @@ inline bool Vector::InSphere(const Vector &pos, float rad) const
 }
 
 #pragma pack(pop)
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __STRSERVICE_H__
-#define __STRSERVICE_H__
+#pragma once
 
 #include "vmodule_api.h"
 
@@ -76,5 +75,3 @@ class SCRIPT_INTERFACE_FUNCTIONS : public SCRIPT_LIBRIARY
     ~SCRIPT_INTERFACE_FUNCTIONS(){};
     bool Init() override;
 };
-
-#endif

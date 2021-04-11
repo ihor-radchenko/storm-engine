@@ -1,5 +1,4 @@
-#ifndef _PCS_CONTROLS_H_
-#define _PCS_CONTROLS_H_
+#pragma once
 
 #include "../Animation/ActionInfo.h"
 #include "ControlTree.h"
@@ -93,5 +92,3 @@ class PCS_CONTROLS : public CONTROLS
     virtual const KeyDescr *GetKeyBuffer();
     virtual void ClearKeyBuffer();
 };
-
-#endif

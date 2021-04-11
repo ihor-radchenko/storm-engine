@@ -1,5 +1,4 @@
-#ifndef BIManager_BaseNode_H
-#define BIManager_BaseNode_H
+#pragma once
 
 #include "../BaseManager.h"
 
@@ -44,5 +43,3 @@ class BI_BaseNode : public BI_ManagerNodeBase
     BI_ManagerBase *m_pManager;
     VDX9RENDER *m_pRS;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef BIManager_BaseGroup_H
-#define BIManager_BaseGroup_H
+#pragma once
 
 #include "../BaseManager.h"
 #include <vector>
@@ -37,5 +36,3 @@ class BI_BaseGroup
     BI_ManagerBase *m_pManager;
     std::vector<BI_ManagerNodeBase *> m_aNodes;
 };
-
-#endif

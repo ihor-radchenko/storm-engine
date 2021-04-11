@@ -1,5 +1,4 @@
-#ifndef __XI_CHANGER_H__
-#define __XI_CHANGER_H__
+#pragma once
 
 #include "..//inode.h"
 
@@ -58,5 +57,3 @@ class CXI_CHANGER : public CINODE
     int m_nClickPlaceNum;
     bool m_bIncreaseChange;
 };
-
-#endif

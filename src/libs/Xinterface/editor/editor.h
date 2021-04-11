@@ -1,5 +1,4 @@
-#ifndef _GI_EDITOR_H
-#define _GI_EDITOR_H
+#pragma once
 
 #include "editor_defines.h"
 
@@ -51,5 +50,3 @@ class GIEditor : public GIEditorObject
     void ChangeNodeName();
     void ChangeSubNodeName() const;
 };
-
-#endif

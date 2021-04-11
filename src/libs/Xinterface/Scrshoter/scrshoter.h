@@ -1,5 +1,4 @@
-#ifndef _SCRSHOTER_H_
-#define _SCRSHOTER_H_
+#pragma once
 
 #include "dx9render.h"
 
@@ -52,5 +51,3 @@ class SCRSHOTER : public Entity
     IDirect3DTexture9 *m_pScrShotTex;
     SAVETEXTURES *m_list;
 };
-
-#endif

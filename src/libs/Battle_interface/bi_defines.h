@@ -1,5 +1,4 @@
-#ifndef __DEFINES_BATTLE_INTERFACE_H_
-#define __DEFINES_BATTLE_INTERFACE_H_
+#pragma once
 
 #include "defines.h"
 #include "dx9render.h"
@@ -228,5 +227,3 @@ inline long GetVDATALong(VDATA *pvd, long defVal)
         pvd->Get(tmp);
     return tmp;
 }
-
-#endif

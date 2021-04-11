@@ -1,5 +1,4 @@
-#ifndef SEA_GROUP_AI_HPP
-#define SEA_GROUP_AI_HPP
+#pragma once
 
 #include "AIShip.h"
 #include "vmodule_api.h"
@@ -87,5 +86,3 @@ class AIGroup
     void Save(CSaveLoad *pSL);
     void Load(CSaveLoad *pSL);
 };
-
-#endif

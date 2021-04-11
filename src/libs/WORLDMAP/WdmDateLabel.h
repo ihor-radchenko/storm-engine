@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmDateLabel_H_
-#define _WdmDateLabel_H_
+#pragma once
 
 #include "WdmInterfaceObject.h"
 
@@ -37,5 +36,3 @@ class WdmDateLabel : public WdmInterfaceObject
     long dateFont;
     char month[12][32];
 };
-
-#endif

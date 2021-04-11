@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Blots_H_
-#define _Blots_H_
+#pragma once
 
 #include "dx9render.h"
 #include "model.h"
@@ -109,5 +108,3 @@ class Blots : public Entity
     static long numClipTriangles;
     static CVECTOR dir, normal;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _VDATA_H_
-#define _VDATA_H_
+#pragma once
 
 #include "Entity.h"
 
@@ -73,5 +72,3 @@ class VDATA
     virtual char *GetString() = 0;
     virtual entid_t GetEntityID() = 0;
 };
-
-#endif

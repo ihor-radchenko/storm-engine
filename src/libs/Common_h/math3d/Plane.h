@@ -4,8 +4,7 @@
 // Plane
 //============================================================================================
 
-#ifndef _Plane_h_
-#define _Plane_h_
+#pragma once
 
 #pragma pack(push, 1)
 
@@ -207,5 +206,3 @@ inline bool Plane::IntersectionLine(const Vector &src, const Vector &dst, float 
 }
 
 #pragma pack(pop)
-
-#endif

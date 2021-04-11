@@ -1,10 +1,11 @@
-#ifndef _FLAG_H_
-#define _FLAG_H_
+#pragma once
 
 #include "dx9render.h"
 #include "geos.h"
 #include "matrix.h"
 #include "model.h"
+
+#include <filesystem>
 
 #define FLAGLXVERTEX_FORMAT (D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXTUREFORMAT2)
 
@@ -58,7 +59,7 @@ class FLAG : public Entity
     };
 
     WIND globalWind;
-    FILETIME ft_old;
+    std::filesystem::file_time_type ft_old;
 
   public:
     FLAG();
@@ -164,5 +165,3 @@ class FLAG : public Entity
     bool bYesDeleted;
     int wFlagLast;
 };
-
-#endif

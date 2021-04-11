@@ -6,6 +6,8 @@
 #include "s_import_func.h"
 #include "v_s_stack.h"
 
+#include <filesystem>
+
 #define USER_BLOCK_BEGINER '{'
 #define USER_BLOCK_ENDING '}'
 
@@ -181,7 +183,6 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
     // GUARD(void STRSERVICE::SetLanguage(const char* sLanguage))
 
     int i;
-    INIFILE *ini;
     char param[2048];
 
     if (sLanguage == nullptr)
@@ -195,8 +196,8 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
         return;
 
     // initialize ini file
-    ini = fio->OpenIniFile((char *)sLanguageFile);
-    if (!ini)
+    auto langIni = fio->OpenIniFile(sLanguageFile);
+    if (!langIni)
     {
         core.Trace("ini file %s not found!", sLanguageFile);
         return;
@@ -218,7 +219,7 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
         STORM_DELETE(m_sLanguageDir);
 
         // get a directory for text files of a given language
-        if (ini->ReadString("DIRECTORY", m_sLanguage, param, sizeof(param) - 1, ""))
+        if (langIni->ReadString("DIRECTORY", m_sLanguage, param, sizeof(param) - 1, ""))
         {
             const auto len = strlen(param) + 1;
             if ((m_sLanguageDir = new char[len]) == nullptr)
@@ -231,7 +232,7 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
             core.Trace("WARNING! Not found directory record for language %s", sLanguage);
 
         // get the name of the ini file with common strings for this language
-        if (ini->ReadString("COMMON", "strings", param, sizeof(param) - 1, ""))
+        if (langIni->ReadString("COMMON", "strings", param, sizeof(param) - 1, ""))
         {
             const auto len = strlen(param) + 1;
             if ((m_sIniFileName = new char[len]) == nullptr)
@@ -247,7 +248,7 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
             break;
 
         // compare the current language with the default
-        if (ini->ReadString("COMMON", "defaultLanguage", param, sizeof(param) - 1, ""))
+        if (langIni->ReadString("COMMON", "defaultLanguage", param, sizeof(param) - 1, ""))
         {
             if (_stricmp(m_sLanguage, param) == 0)
                 break;
@@ -272,7 +273,7 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
     if (RenderService)
     {
         char fullIniPath[512];
-        if (ini->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, ""))
+        if (langIni->ReadString("FONTS", m_sLanguage, param, sizeof(param) - 1, ""))
         {
             sprintf_s(fullIniPath, "resource\\ini\\%s", param);
         }
@@ -284,7 +285,6 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
         RenderService->SetFontIniFileName(fullIniPath);
     }
     //==========================================================================
-    delete ini;
 
     //====================================================================
     // Set language data
@@ -308,7 +308,7 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
 
     // initialize ini file
     sprintf_s(param, "resource\\ini\\texts\\%s\\%s", m_sLanguageDir, m_sIniFileName);
-    ini = fio->OpenIniFile(param);
+    auto ini = fio->OpenIniFile(param);
     if (!ini)
     {
         core.Trace("WARNING! ini file \"%s\" not found!", param);
@@ -378,7 +378,6 @@ void STRSERVICE::SetLanguage(const char *sLanguage)
     }
 
     // end of search
-    delete ini;
 
     // =======================================================================
     // Re-reading user files
@@ -493,11 +492,10 @@ void STRSERVICE::LoadIni()
 {
     // GUARD(void STRSERVICE::LoadIni())
 
-    INIFILE *ini;
     char param[256];
 
     // initialize ini file
-    ini = fio->OpenIniFile((char *)sLanguageFile);
+    auto ini = fio->OpenIniFile(sLanguageFile);
     if (!ini)
     {
         core.Trace("Error: Language ini file not found!");
@@ -517,7 +515,6 @@ void STRSERVICE::LoadIni()
         core.Trace("WARNING! Language ini file have not default language.");
         strcpy_s(param, "English");
     }
-    delete ini;
 
     if (param[0] != 0)
         SetLanguage(param);
@@ -569,59 +566,69 @@ long STRSERVICE::OpenUsersStringFile(const char *fileName)
 {
     int i;
     if (fileName == nullptr)
+    {
         return -1;
+    }
 
     UsersStringBlock *pPrev = nullptr;
-    UsersStringBlock *pUSB;
-    for (pUSB = m_pUsersBlocks; pUSB != nullptr; pUSB = pUSB->next)
+    UsersStringBlock *itUSB;
+    for (itUSB = m_pUsersBlocks; itUSB != nullptr; itUSB = itUSB->next)
     {
-        if (pUSB->fileName != nullptr && _stricmp(pUSB->fileName, fileName) == 0)
+        if (itUSB->fileName != nullptr && _stricmp(itUSB->fileName, fileName) == 0)
+        {
             break;
-        pPrev = pUSB;
+        }
+        pPrev = itUSB;
     }
-    if (pUSB != nullptr)
+    if (itUSB != nullptr)
     {
-        pUSB->nref++;
-        return pUSB->blockID;
+        itUSB->nref++;
+        return itUSB->blockID;
     }
 
-    pUSB = new UsersStringBlock;
-    if (pUSB == nullptr)
-        throw std::exception("Allocate memory error");
+    auto pUSB = std::make_unique<UsersStringBlock>();
 
     // strings reading
     char param[512];
     sprintf_s(param, "resource\\ini\\TEXTS\\%s\\%s", m_sLanguageDir, fileName);
-    const HANDLE hfile = fio->_CreateFile(param, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-    const long filesize = fio->_GetFileSize(hfile, nullptr);
+    auto fileS = fio->_CreateFile(param, std::ios::binary | std::ios::in);
+    if (!fileS.is_open())
+    {
+        core.tracelog->warn("WARNING! Strings file \"{}\" does not exist", fileName);
+        return -1;
+    }
+
+    const long filesize = fio->_GetFileSize(param);
+
     if (filesize <= 0)
     {
-        core.Trace("WARNING! Strings file \"%s\" not exist/or zero size", fileName);
-        fio->_CloseHandle(hfile);
-        delete pUSB;
+        core.tracelog->warn("WARNING! Strings file \"{}\" has zero size", fileName);
         return -1;
     }
 
     char *fileBuf = new char[filesize + 1];
     if (fileBuf == nullptr)
+    {
         throw std::exception("Allocate memory error");
+    }
 
-    long readsize;
-    if (fio->_ReadFile(hfile, fileBuf, filesize, (uint32_t *)&readsize) == FALSE || readsize != filesize)
+    if (!fio->_ReadFile(fileS, fileBuf, filesize))
     {
         core.Trace("Can`t read strings file: %s", fileName);
-        fio->_CloseHandle(hfile);
+        fio->_CloseFile(fileS);
         STORM_DELETE(fileBuf);
         return -1;
     }
-    fio->_CloseHandle(hfile);
-    fileBuf[readsize] = 0;
+    fio->_CloseFile(fileS);
+    fileBuf[filesize] = 0;
 
     pUSB->nref = 1;
     const auto len = strlen(fileName) + 1;
     pUSB->fileName = new char[len];
     if (pUSB->fileName == nullptr)
+    {
         throw std::exception("Allocate memory error");
+    }
     memcpy(pUSB->fileName, fileName, len);
     pUSB->blockID = GetFreeUsersID();
 
@@ -631,7 +638,9 @@ long STRSERVICE::OpenUsersStringFile(const char *fileName)
     for (pUSB->nStringsQuantity = 0;; pUSB->nStringsQuantity++)
     {
         if (!GetNextUsersString(fileBuf, stridx, nullptr, nullptr))
+        {
             break;
+        }
     }
     if (pUSB->nStringsQuantity == 0)
     {
@@ -642,20 +651,29 @@ long STRSERVICE::OpenUsersStringFile(const char *fileName)
         pUSB->psStrName = new char *[pUSB->nStringsQuantity];
         pUSB->psString = new char *[pUSB->nStringsQuantity];
         if (pUSB->psStrName == nullptr || pUSB->psString == nullptr)
+        {
             throw std::exception("Allocate memory error");
+        }
         stridx = 0;
         for (i = 0; i < pUSB->nStringsQuantity; i++)
+        {
             GetNextUsersString(fileBuf, stridx, &pUSB->psStrName[i], &pUSB->psString[i]);
+        }
     }
 
     STORM_DELETE(fileBuf);
 
+    const long block_id = pUSB->blockID;
     pUSB->next = nullptr;
     if (pPrev == nullptr)
-        m_pUsersBlocks = pUSB;
+    {
+        m_pUsersBlocks = pUSB.release();
+    }
     else
-        pPrev->next = pUSB;
-    return pUSB->blockID;
+    {
+        pPrev->next = pUSB.release();
+    }
+    return block_id;
 }
 
 void STRSERVICE::CloseUsersStringFile(long id)
@@ -1324,51 +1342,23 @@ uint32_t _InterfaceCheckFolder(VS_STACK *pS)
     VDATA *pDat;
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
-        return IFUNCRESULT_FAILED;
-    char *sFolderName = pDat->GetString();
-    long nSuccess = false;
-    WIN32_FIND_DATA wfd;
-    const HANDLE h = fio->_FindFirstFile(sFolderName, &wfd);
-    if (h != INVALID_HANDLE_VALUE)
     {
-        fio->_FindClose(h);
-        nSuccess = true;
+        return IFUNCRESULT_FAILED;
     }
+    char *sFolderName = pDat->GetString();
+    long nSuccess = fio->_FileOrDirectoryExists(sFolderName);
     pDat = (VDATA *)pS->Push();
     if (!pDat)
+    {
         return IFUNCRESULT_FAILED;
+    }
     pDat->Set(nSuccess);
     return IFUNCRESULT_OK;
 }
 
-BOOL DeleteFolderWithCantainment(const char *sFolderName)
+bool DeleteFolderWithCantainment(const char *sFolderName)
 {
-    WIN32_FIND_DATA wfd;
-    const HANDLE hff = fio->_FindFirstFile((sFolderName + std::string("\\*.*")).c_str(), &wfd);
-    if (hff != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            std::string sFileName = sFolderName + std::string("\\");
-            if (wfd.cAlternateFileName[0])
-                sFileName += utf8::ConvertWideToUtf8(wfd.cAlternateFileName).c_str();
-            else
-                sFileName += utf8::ConvertWideToUtf8(wfd.cFileName).c_str();
-
-            if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                if (wfd.cFileName[0] == L'.')
-                    continue;
-                DeleteFolderWithCantainment(sFileName.c_str());
-            }
-            else
-            {
-                fio->_DeleteFile(sFileName.c_str());
-            }
-        } while (fio->_FindNextFile(hff, &wfd));
-        fio->_FindClose(hff);
-    }
-    return fio->_RemoveDirectory(sFolderName);
+    return (fio->_RemoveDirectory(sFolderName) > 0);
 }
 
 uint32_t _InterfaceDeleteFolder(VS_STACK *pS)
@@ -1392,34 +1382,32 @@ uint32_t _InterfaceFindFolders(VS_STACK *pS)
     VDATA *pDat;
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
+    {
         return IFUNCRESULT_FAILED;
+    }
     ATTRIBUTES *pA = pDat->GetAClass();
     pDat = (VDATA *)pS->Pop();
     if (!pDat)
+    {
         return IFUNCRESULT_FAILED;
+    }
     char *sFindTemplate = pDat->GetString();
-    WIN32_FIND_DATA wfd;
-    const HANDLE h = fio->_FindFirstFile(sFindTemplate, &wfd);
+    std::filesystem::path p = std::filesystem::u8path(sFindTemplate);
+    const auto mask = p.filename().string();
+    const auto vFilenames =
+        fio->_GetPathsOrFilenamesByMask(p.remove_filename().string().c_str(), mask.c_str(), false, true, false);
     long n = 0;
-    if (h != INVALID_HANDLE_VALUE)
-        do
-        {
-            if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                if (wfd.cFileName[0] != L'.')
-                {
-                    char pctmp[64];
-                    sprintf_s(pctmp, "f%d", n++);
-                    std::string FileName = utf8::ConvertWideToUtf8(wfd.cFileName);
-                    pA->SetAttribute(pctmp, FileName.c_str());
-                }
-            }
-        } while (fio->_FindNextFile(h, &wfd));
-    if (h != INVALID_HANDLE_VALUE)
-        fio->_FindClose(h);
+    for (std::string curName : vFilenames)
+    {
+        char pctmp[64];
+        sprintf_s(pctmp, "f%d", n++);
+        pA->SetAttribute(pctmp, curName.c_str());
+    }
     pDat = (VDATA *)pS->Push();
     if (!pDat)
+    {
         return IFUNCRESULT_FAILED;
+    }
     const long nSuccess = (pA->GetAttributesNum() > 0);
     pDat->Set(nSuccess);
     return IFUNCRESULT_OK;

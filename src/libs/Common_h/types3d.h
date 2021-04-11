@@ -1,5 +1,4 @@
-#ifndef _TYPES3D_H_
-#define _TYPES3D_H_
+#pragma once
 
 //#include <windows.h>
 
@@ -67,5 +66,3 @@ typedef struct
 } MATRIX;
 
 #pragma pack(pop)
-
-#endif

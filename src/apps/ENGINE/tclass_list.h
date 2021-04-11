@@ -1,5 +1,4 @@
-#ifndef _TCLASS_LIST_
-#define _TCLASS_LIST_
+#pragma once
 
 template <class ClassType> class TCLASS_LIST
 {
@@ -54,5 +53,3 @@ template <class ClassType> class TCLASS_LIST
         return nClassesNum;
     }
 };
-
-#endif

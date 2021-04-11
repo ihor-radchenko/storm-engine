@@ -5,8 +5,7 @@
 //*
 //****************************************************************
 
-#ifndef MODEL_PARTICLE_PROCESSOR
-#define MODEL_PARTICLE_PROCESSOR
+#pragma once
 
 #include "dx9render.h"
 #include "math3d/Matrix.h"
@@ -59,5 +58,3 @@ class ModelProcessor
 
     void Clear();
 };
-
-#endif

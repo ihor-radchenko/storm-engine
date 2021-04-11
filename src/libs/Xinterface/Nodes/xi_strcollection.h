@@ -1,5 +1,4 @@
-#ifndef _XI_STRCOLLECTION_H
-#define _XI_STRCOLLECTION_H
+#pragma once
 
 #include "..//inode.h"
 
@@ -58,5 +57,3 @@ class CXI_STRCOLLECTION : public CINODE
     STRINGDESCR *m_pStrDescr; // pointer to array of the string descriptors
     long m_nEditIndex;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _XI_TWOPICTURE_H_
-#define _XI_TWOPICTURE_H_
+#pragma once
 
 #include "..//inode.h"
 
@@ -51,5 +50,3 @@ class CXI_TWOPICTURE : public CINODE
     XI_NOTEX_VERTEX m_vSOne[4];
     XI_NOTEX_VERTEX m_vSTwo[4];
 };
-
-#endif

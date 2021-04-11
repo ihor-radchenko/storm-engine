@@ -1,5 +1,4 @@
-#ifndef _GI_EDITOR_LIST_H
-#define _GI_EDITOR_LIST_H
+#pragma once
 
 #include "../inode.h"
 #include "defines.h"
@@ -79,5 +78,3 @@ class GIEditorList : public GIEditorObject
     uint32_t m_dwStatus;
     GIEditorEventHandler *m_pChangeSelected;
 };
-
-#endif

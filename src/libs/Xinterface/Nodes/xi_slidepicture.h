@@ -1,5 +1,4 @@
-#ifndef _XI_SLIDEPICTURE_H_
-#define _XI_SLIDEPICTURE_H_
+#pragma once
 
 #include "..//inode.h"
 
@@ -51,5 +50,3 @@ class CXI_SLIDEPICTURE : public CINODE
 
     char *strTechniqueName;
 };
-
-#endif

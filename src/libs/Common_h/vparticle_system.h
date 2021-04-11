@@ -1,5 +1,4 @@
-#ifndef _VPARTICLE_SYSTEM_H_
-#define _VPARTICLE_SYSTEM_H_
+#pragma once
 
 //#include <windows.h>
 #include "Cvector.h"
@@ -23,5 +22,3 @@ class VPARTICLE_SYSTEM
     {
     }
 };
-
-#endif

@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmShip_H_
-#define _WdmShip_H_
+#pragma once
 
 #include "WdmRenderModel.h"
 
@@ -92,5 +91,3 @@ class WdmShip : public WdmRenderModel
 
     Line lines[8];
 };
-
-#endif

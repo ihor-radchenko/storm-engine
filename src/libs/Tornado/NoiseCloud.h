@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _NoiseCloud_H_
-#define _NoiseCloud_H_
+#pragma once
 
 #include "Matrix.h"
 #include "Pillar.h"
@@ -59,5 +58,3 @@ class NoiseCloud
     Rect rect[64];
     Vertex buf[6 * 64];
 };
-
-#endif

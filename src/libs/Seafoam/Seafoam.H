@@ -1,5 +1,4 @@
-#ifndef _SEAFOAM_H_
-#define _SEAFOAM_H_
+#pragma once
 
 #include "../SoundService/VSoundService.h"
 #include "SeafoamDefines.h"
@@ -81,10 +80,8 @@ class SEAFOAM : public Entity
     SEA_BASE *sea;
     tShipFoamInfo shipFoamInfo[MAX_SHIPS]{};
     int shipsCount;
-    INIFILE *psIni;
+    std::unique_ptr<INIFILE> psIni;
     long carcassTexture;
     bool isStorm;
     VSoundService *soundService;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _VS_STACK_H_
-#define _VS_STACK_H_
+#pragma once
 
 #include "vdata.h"
 
@@ -18,5 +17,3 @@ class VS_STACK
     virtual uint32_t GetDataNum() = 0;
     virtual void InvalidateFrom(uint32_t index) = 0;
 };
-
-#endif

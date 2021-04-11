@@ -1,5 +1,4 @@
-#ifndef _SAIL_H_
-#define _SAIL_H_
+#pragma once
 
 #include "SAILONE.h"
 #include "dx9render.h"
@@ -7,6 +6,8 @@
 #include "model.h"
 #include "sail_base.h"
 #include "vmodule_api.h"
+
+#include <filesystem>
 
 class VDATA;
 
@@ -78,7 +79,7 @@ class SAIL : public SAIL_BASE
     bool bUse;
     VDX9RENDER *RenderService;
     D3DMATERIAL9 mat;
-    FILETIME ft_old;
+    std::filesystem::file_time_type ft_old;
     long texl;
     long m_nEmptyGerbTex;
 
@@ -202,5 +203,3 @@ class SAIL : public SAIL_BASE
 
     long m_nLastUpdate;
 };
-
-#endif

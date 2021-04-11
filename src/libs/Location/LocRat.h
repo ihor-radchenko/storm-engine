@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _LocRat_h_
-#define _LocRat_h_
+#pragma once
 
 #include "LocLife.h"
 
@@ -39,5 +38,3 @@ class LocRat : public LocLife
     float moveTime;
     bool isPanic;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _Blood_H_
-#define _Blood_H_
+#pragma once
 
 #include "collide.h"
 #include "dx9render.h"
@@ -93,5 +92,3 @@ class Blood : public Entity
     void SetVertexByPos(BloodVertex &v, const CVECTOR &pos, const CVECTOR &vc, float fU0, float fV0);
     long CheckBloodQuantityInRadius(const CVECTOR &cpos, float fDist, long nLimitQ);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _TSINKSPLASH_H_
-#define _TSINKSPLASH_H_
+#pragma once
 
 #include "../SoundService/VSoundService.h"
 #include "Cvector.h"
@@ -43,5 +42,3 @@ class TSinkSplash
     CVECTOR center, dir;
     float growK;
 };
-
-#endif

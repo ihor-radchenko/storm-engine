@@ -1,5 +1,4 @@
-#ifndef SSE_HPP
-#define SSE_HPP
+#pragma once
 
 // INTEL COMMENT:
 // This function simply gathers 4 floats and places them on a __m128 variable.
@@ -89,5 +88,3 @@ static inline void Normalise(__m128 m128X, __m128 m128Y, __m128 m128Z, __m128 *p
     *pm128Y = _mm_mul_ps(m128Y, xmm0); // RecipLength * Y
     *pm128Z = _mm_mul_ps(m128Z, xmm0); // RecipLength * Z
 }
-
-#endif

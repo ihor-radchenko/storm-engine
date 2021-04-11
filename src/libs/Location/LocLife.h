@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _LocLife_h_
-#define _LocLife_h_
+#pragma once
 
 #include "Animation.h"
 #include "Entity.h"
@@ -62,5 +61,3 @@ class LocLife : public AnimationEventListener
     CVECTOR pos;
     CVECTOR npos;
 };
-
-#endif

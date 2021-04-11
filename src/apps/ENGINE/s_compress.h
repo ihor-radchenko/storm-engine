@@ -1,5 +1,4 @@
-#ifndef _S_COMPRESS_H_
-#define _S_COMPRESS_H_
+#pragma once
 
 #include "dstring_codec.h"
 #include <cstdint>
@@ -48,5 +47,3 @@ class COMPRESS
     bool ReadCode(const char *pSource, uint32_t nSourceSize, uint32_t &nOffset, uint32_t &nResult);
     bool AppendData(char *&pDestination, uint32_t &nUnpackedSize, char *pData, uint32_t nSize);
 };
-
-#endif

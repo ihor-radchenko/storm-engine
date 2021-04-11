@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _AnimationTimerImp_H_
-#define _AnimationTimerImp_H_
+#pragma once
 
 #include "Animation.h"
 
@@ -74,5 +73,3 @@ class AnimationTimerImp : public AnimationTimer
     uint32_t playersMask[ANITM_PLAYERSMAX];
     uint32_t inverseMask[ANITM_PLAYERSMAX];
 };
-
-#endif

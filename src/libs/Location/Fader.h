@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _Fader_H_
-#define _Fader_H_
+#pragma once
 
 #include "dx9render.h"
 #include "vmodule_api.h"
@@ -79,5 +78,3 @@ class Fader : public Entity
     static long numberOfTips;
     static long currentTips;
 };
-
-#endif

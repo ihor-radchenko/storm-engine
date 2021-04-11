@@ -1,5 +1,4 @@
-#ifndef _PARTICLE_DATA_STRING_H_
-#define _PARTICLE_DATA_STRING_H_
+#pragma once
 
 #include "../../icommon/memfile.h"
 
@@ -28,5 +27,3 @@ class DataString
     void SetName(const char *szName);
     const char *GetName() const;
 };
-
-#endif

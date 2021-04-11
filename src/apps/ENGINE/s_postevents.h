@@ -1,5 +1,4 @@
-#ifndef _POSTEVENTS_H_
-#define _POSTEVENTS_H_
+#pragma once
 
 #include "s_eventmsg.h"
 
@@ -78,5 +77,3 @@ class POSTEVENTS_LIST
         }
     }
 };
-
-#endif

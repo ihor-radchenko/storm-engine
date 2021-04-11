@@ -1,5 +1,4 @@
-#ifndef _CONTROL_KEYBUFFER_H_
-#define _CONTROL_KEYBUFFER_H_
+#pragma once
 
 #include "../Animation/ActionInfo.h"
 #include "controls.h"
@@ -26,5 +25,3 @@ struct ControlKeyBuffer
     long m_nBufLen;
     KeyDescr m_pcBuffer[512];
 };
-
-#endif

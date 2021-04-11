@@ -1,5 +1,4 @@
-#ifndef _MATRIX_H_
-#define _MATRIX_H_
+#pragma once
 
 #include "Cvector.h"
 #include <d3d9.h>
@@ -912,5 +911,3 @@ inline CMatrix &CMatrix::BuildScale(const CVECTOR &scale)
     BuildScale(scale.x, scale.y, scale.z);
     return *this;
 }
-
-#endif

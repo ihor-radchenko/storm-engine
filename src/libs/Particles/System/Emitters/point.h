@@ -1,5 +1,4 @@
-#ifndef POINT_EMITTER_H
-#define POINT_EMITTER_H
+#pragma once
 
 #include "base.h"
 
@@ -14,5 +13,3 @@ class PointEmitter : public BaseEmitter
     PointEmitter(ParticleSystem *pSystem);
     virtual ~PointEmitter();
 };
-
-#endif

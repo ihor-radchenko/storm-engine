@@ -2,18 +2,19 @@
 #include "tga.h"
 #include "vfile_service.h"
 
-bool ISLAND::DoZapSuperGeneratorDecodeFile(const char *sname)
+// dead code
+/*bool ISLAND::DoZapSuperGeneratorDecodeFile(const char *sname)
 {
-    auto *const hFile = fio->_CreateFile(sname, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-    if (hFile != INVALID_HANDLE_VALUE)
+    auto fileS = fio->_CreateFile(sname, std::ios::binary | std::ios::in);
+    if (fileS.is_open())
     {
         TGA_H tga_head;
 
-        fio->_ReadFile(hFile, &tga_head, sizeof(tga_head), nullptr);
+        fio->_ReadFile(fileS, &tga_head, sizeof(tga_head));
         const uint32_t dwSize = tga_head.width;
         auto *pTempMap = new uint8_t[dwSize * dwSize];
-        fio->_ReadFile(hFile, pTempMap, dwSize * dwSize, nullptr);
-        fio->_CloseHandle(hFile);
+        fio->_ReadFile(fileS, pTempMap, dwSize * dwSize);
+        fio->_CloseFile(fileS);
 
         mzShadow.DoZip(pTempMap, dwSize);
         mzShadow.Save(std::string(sname) + ".zap");
@@ -66,4 +67,4 @@ void ISLAND::DoZapSuperGeneratorInnerDecodeFiles(const char *sub_dir, const char
 void ISLAND::DoZapSuperGenerator()
 {
     DoZapSuperGeneratorInnerDecodeFiles(nullptr, "*.tga");
-}
+}*/

@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WideScreen_H_
-#define _WideScreen_H_
+#pragma once
 
 #include "dx9render.h"
 #include "vmodule_api.h"
@@ -55,5 +54,3 @@ class WideScreen : public Entity
     float state;    // Screen state
     float dlt;      // Screen change direction
 };
-
-#endif

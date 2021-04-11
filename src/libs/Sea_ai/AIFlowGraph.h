@@ -1,5 +1,4 @@
-#ifndef AI_FLOW_GRAPH_HPP
-#define AI_FLOW_GRAPH_HPP
+#pragma once
 
 #include "Cvector.h"
 #include "defines.h"
@@ -192,7 +191,7 @@ class AIFlowGraph
 
     // save/load/release section
     void ReleaseAll();
-    bool Load(INIFILE *pIni);
+    bool Load(INIFILE &pIni);
     bool Save(INIFILE *pIni);
 
     // point/edge/Path function section
@@ -261,10 +260,9 @@ inline bool AIFlowGraph::Save(INIFILE *pIni)
     return true;
 }
 
-inline bool AIFlowGraph::Load(INIFILE *pIni)
+inline bool AIFlowGraph::Load(INIFILE &pIni)
 {
     char cTemp[32768];
-    Assert(pIni);
     ReleaseAll();
 
     std::string sKey;
@@ -272,7 +270,7 @@ inline bool AIFlowGraph::Load(INIFILE *pIni)
     {
         sKey = "pnt" + std::to_string(aPoints.size());
         cTemp[0] = 0;
-        pIni->ReadString((char *)sSectionName.c_str(), (char *)sKey.c_str(), cTemp, 32768, "\0");
+        pIni.ReadString((char *)sSectionName.c_str(), (char *)sKey.c_str(), cTemp, 32768, "\0");
         if (!cTemp[0])
             break;
 
@@ -288,7 +286,7 @@ inline bool AIFlowGraph::Load(INIFILE *pIni)
         uint32_t dwNum;
         sKey = "pnt" + std::to_string(i);
         cTemp[0] = 0;
-        pIni->ReadString((char *)sSectionName.c_str(), (char *)sKey.c_str(), cTemp, 32768);
+        pIni.ReadString((char *)sSectionName.c_str(), (char *)sKey.c_str(), cTemp, 32768);
         if (!cTemp[0])
             continue;
 
@@ -489,5 +487,3 @@ inline std::vector<AIFlowGraph::npoint_t> *AIFlowGraph::GetNearestPoints(CVECTOR
 
     return aNearestPoints;
 }
-
-#endif

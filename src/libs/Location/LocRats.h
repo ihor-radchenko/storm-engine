@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _LocRats_h_
-#define _LocRats_h_
+#pragma once
 
 #include "dx9render.h"
 #include "vmodule_api.h"
@@ -56,5 +55,3 @@ class LocRats : public Entity
     LocRat rat[32];
     long num;
 };
-
-#endif

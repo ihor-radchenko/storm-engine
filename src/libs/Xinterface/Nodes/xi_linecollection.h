@@ -1,5 +1,4 @@
-#ifndef _XI_LINECOLLECTION_H
-#define _XI_LINECOLLECTION_H
+#pragma once
 
 #include "../inode.h"
 
@@ -31,5 +30,3 @@ class CXI_LINECOLLECTION : public CINODE
   protected:
     std::vector<RS_LINE> m_aLines;
 };
-
-#endif

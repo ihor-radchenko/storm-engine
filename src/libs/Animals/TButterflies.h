@@ -1,5 +1,4 @@
-#ifndef _TBUTTERFLIES_H_
-#define _TBUTTERFLIES_H_
+#pragma once
 
 #include "AnimalsDefines.h"
 #include "Animation.h"
@@ -42,5 +41,3 @@ class TButterflies
     long yDefineTime;
     long texture;
 };
-
-#endif // !defined

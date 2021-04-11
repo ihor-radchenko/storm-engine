@@ -5,8 +5,7 @@
 //*
 //****************************************************************
 
-#ifndef PARTICLES_SERVICE_IMPLEMENTATION
-#define PARTICLES_SERVICE_IMPLEMENTATION
+#pragma once
 
 #include "particles/iparticlesservice.h"
 #include <string>
@@ -45,5 +44,3 @@ class ParticleService : public IParticleService
 
     IParticleManager *DefManager() override;
 };
-
-#endif

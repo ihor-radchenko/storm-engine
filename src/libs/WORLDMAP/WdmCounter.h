@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmCounter_H_
-#define _WdmCounter_H_
+#pragma once
 
 #include "WdmRenderModel.h"
 
@@ -55,5 +54,3 @@ class WdmCounter : public WdmRenderModel
 
     static const char *skytex[WMD_NUM_SKYS];
 };
-
-#endif

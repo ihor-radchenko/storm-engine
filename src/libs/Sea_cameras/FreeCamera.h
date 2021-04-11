@@ -1,5 +1,4 @@
-#ifndef _CAMERA_H_
-#define _CAMERA_H_
+#pragma once
 
 #include "Common_Camera.h"
 #include "Island_Base.h"
@@ -47,5 +46,3 @@ class FREE_CAMERA : public COMMON_CAMERA
     void Save(CSaveLoad *pSL) override;
     void Load(CSaveLoad *pSL) override;
 };
-
-#endif

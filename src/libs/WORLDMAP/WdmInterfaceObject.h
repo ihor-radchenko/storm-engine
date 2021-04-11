@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _WdmInterfaceObject_H_
-#define _WdmInterfaceObject_H_
+#pragma once
 
 #include "WdmRenderObject.h"
 
@@ -64,5 +63,3 @@ class WdmInterfaceObject : public WdmRenderObject
 
   private:
 };
-
-#endif

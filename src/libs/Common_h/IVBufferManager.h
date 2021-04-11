@@ -1,5 +1,4 @@
-#ifndef _IVBUFFERMANAGER_H_
-#define _IVBUFFERMANAGER_H_
+#pragma once
 
 #include "dx9render.h"
 
@@ -34,5 +33,3 @@ class IVBufferManager
 
     std::vector<bool> used_;
 };
-
-#endif

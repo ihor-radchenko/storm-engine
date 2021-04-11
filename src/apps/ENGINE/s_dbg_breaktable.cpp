@@ -1,13 +1,10 @@
 #include "s_dbg_breaktable.h"
 #include "file_service.h"
 
-extern FILE_SERVICE File_Service;
-
 #define SECTION_NAME "breakpoints"
 
 BREAKPOINTS_TABLE::BREAKPOINTS_TABLE()
 {
-    fio = &File_Service;
     nPoints = 0;
     ProjectName[0] = 0;
     // bReleased = false;
@@ -26,7 +23,7 @@ void BREAKPOINTS_TABLE::Release()
     // if(nPoints)
     if (ProjectName[0] != 0)
     {
-        auto *ini = fio->OpenIniFile(ProjectName);
+        auto ini = fio->OpenIniFile(ProjectName);
         if (!ini)
             ini = fio->CreateIniFile(ProjectName, false);
         if (ini)
@@ -39,7 +36,6 @@ void BREAKPOINTS_TABLE::Release()
                 sprintf_s(buffer, "%s,%d", pTable[n].pFileName, pTable[n].nLineNumber);
                 ini->AddString(SECTION_NAME, "B", buffer);
             }
-            delete ini;
         }
         ProjectName[0] = 0;
     }
@@ -60,7 +56,7 @@ void BREAKPOINTS_TABLE::UpdateProjectFile()
 
     if (ProjectName[0] != 0)
     {
-        auto *ini = fio->OpenIniFile(ProjectName);
+        auto ini = fio->OpenIniFile(ProjectName);
         if (!ini)
             ini = fio->CreateIniFile(ProjectName, false);
         if (ini)
@@ -73,7 +69,6 @@ void BREAKPOINTS_TABLE::UpdateProjectFile()
                 sprintf_s(buffer, "%s,%d", pTable[n].pFileName, pTable[n].nLineNumber);
                 ini->AddString(SECTION_NAME, "B", buffer);
             }
-            delete ini;
         }
     }
 }
@@ -106,7 +101,7 @@ bool BREAKPOINTS_TABLE::ReadProject(const char *filename)
 
     Release();
 
-    auto *ini = fio->OpenIniFile(filename);
+    auto ini = fio->OpenIniFile(filename);
     if (ini)
     {
         strcpy_s(ProjectName, filename);
@@ -120,7 +115,6 @@ bool BREAKPOINTS_TABLE::ReadProject(const char *filename)
                     AddBreakPoint(buffer, nLineNumber);
             }
         }
-        delete ini;
         // bReleased = false;
         return true;
     }

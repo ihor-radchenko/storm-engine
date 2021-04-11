@@ -8,8 +8,7 @@
 //
 //============================================================================================
 
-#ifndef _CameraFollow_H_
-#define _CameraFollow_H_
+#pragma once
 
 #include "Matrix.h"
 #include "model.h"
@@ -88,5 +87,3 @@ class CameraFollow
     static float fndkAy;        // 1/(1 - cos(ay))
     static PLANE fndPlanes[32]; // Temporarily used face planes
 };
-
-#endif

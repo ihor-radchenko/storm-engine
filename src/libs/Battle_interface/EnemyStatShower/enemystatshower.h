@@ -1,5 +1,4 @@
-#ifndef _BI_ENEMY_STAT_SHOWER_H_
-#define _BI_ENEMY_STAT_SHOWER_H_
+#pragma once
 
 #include "Entity.h"
 
@@ -44,5 +43,3 @@ class EnemyStatShower : public Entity
     entid_t m_eidChrEID;
     MODEL *m_pModel;
 };
-
-#endif

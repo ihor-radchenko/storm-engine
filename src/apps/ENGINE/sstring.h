@@ -1,5 +1,4 @@
-#ifndef _SSTRING_H_
-#define _SSTRING_H_
+#pragma once
 
 #include <cstdarg>
 #include <cstdio>
@@ -128,5 +127,3 @@ class SSTRING
         return *this;
     }
 };
-
-#endif

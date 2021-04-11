@@ -1,5 +1,4 @@
-#ifndef _S_DEFTAB_H_
-#define _S_DEFTAB_H_
+#pragma once
 
 #include "data.h"
 #include <vector>
@@ -57,5 +56,3 @@ class S_DEFTAB
     uint32_t FindDef(const char *def_name);
     void UpdateHashTable(uint32_t code, uint32_t hash, bool in);
 };
-
-#endif
