@@ -2,10 +2,9 @@
 
 #include "core.h"
 
-#include "Entity.h"
+#include "entity.h"
 #include "inlines.h"
 #include "s_import_func.h"
-#include "script_libriary.h"
 #include "texture.h"
 #include "v_s_stack.h"
 
@@ -24,6 +23,33 @@ CREATE_SCRIPTLIBRIARY(DX9RENDER_SCRIPT_LIBRIARY)
         ULONG refc = a->Release();                                                                                     \
         a = NULL;                                                                                                      \
     }
+
+namespace
+{
+    void InvokeEntitiesLostRender()
+    {
+        const auto its = EntityManager::GetEntityIdIterators();
+        for (auto it = its.first; it != its.second; ++it)
+        {
+            if (!it->deleted && it->ptr != nullptr)
+            {
+                it->ptr->ProcessStage(Entity::Stage::lost_render);
+            }
+        }
+    }
+
+    void InvokeEntitiesRestoreRender()
+    {
+        const auto its = EntityManager::GetEntityIdIterators();
+        for (auto it = its.first; it != its.second; ++it)
+        {
+            if (!it->deleted && it->ptr != nullptr)
+            {
+                it->ptr->ProcessStage(Entity::Stage::restore_render);
+            }
+        }
+    }
+}
 
 DX9RENDER *DX9RENDER::pRS = nullptr;
 
@@ -456,6 +482,18 @@ bool DX9RENDER::Init()
             stencil_format = D3DFMT_D16;
         }
 
+        // new renderer settings
+        vSyncEnabled = ini->GetLong(nullptr, "vsync", 0);
+        msaa = ini->GetLong(nullptr, "msaa", D3DMULTISAMPLE_16_SAMPLES);
+        if (msaa != D3DMULTISAMPLE_NONE)
+        {
+            if (msaa < D3DMULTISAMPLE_2_SAMPLES || msaa > D3DMULTISAMPLE_16_SAMPLES)
+            {
+                msaa = D3DMULTISAMPLE_16_SAMPLES;
+            }
+        }
+
+
         // stencil_format = D3DFMT_D24S8;
         if (!InitDevice(bWindow, core.GetAppHWND(), screen_size.x, screen_size.y))
             return false;
@@ -659,17 +697,15 @@ bool DX9RENDER::InitDevice(bool windowed, HWND _hwnd, long width, long height)
     }
 
     d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
-    // d3dpp.MultiSampleType = D3DMULTISAMPLEMODE_4X ;
-    /*uint32_t n;
-    for(n=D3DMULTISAMPLE_16_SAMPLES;n>=D3DMULTISAMPLE_3_SAMPLES;n--)
+    for (auto samples = msaa; msaa > D3DMULTISAMPLE_2_SAMPLES; samples--)
     {
-    if(SUCCEEDED(d3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,
-    d3dpp.BackBufferFormat,false,(D3DMULTISAMPLE_TYPE)n)))
-    {
-    d3dpp.MultiSampleType = (D3DMULTISAMPLE_TYPE)n;
-    break;
+        if (SUCCEEDED(d3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, d3dpp.BackBufferFormat, false,
+                                                      static_cast<D3DMULTISAMPLE_TYPE>(samples), nullptr)))
+        {
+            d3dpp.MultiSampleType = static_cast<D3DMULTISAMPLE_TYPE>(samples);
+            break;
+        }
     }
-    }//*/
 
     if (bBackBufferCanLock)
         d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
@@ -681,19 +717,27 @@ bool DX9RENDER::InitDevice(bool windowed, HWND _hwnd, long width, long height)
     // if(windowed) d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;//FLIP;
     // else d3dpp.SwapEffect = D3DSWAPEFFECT_FLIP;
 
-    if (!windowed)
+    if (vSyncEnabled)
     {
         d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-        // d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+    }
+    else
+    {
+        d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     }
 
-    if (d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_MIXED_VERTEXPROCESSING, &d3dpp, &d3d9) !=
-        D3D_OK)
+    if (CHECKD3DERR(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                                      &d3dpp, &d3d9)))
     {
-        // if(CHECKD3DERR(E_FAIL)==true)    return false;
-        if (CHECKD3DERR(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-                                          &d3dpp, &d3d9)) == true)
-            return false;
+        if (CHECKD3DERR(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_MIXED_VERTEXPROCESSING,
+                                          &d3dpp, &d3d9)))
+        {
+            if (CHECKD3DERR(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
+                                              D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &d3d9)))
+            {
+                return false;
+            }
+        }
     }
     effects_.setDevice(d3d9);
 
@@ -1304,6 +1348,42 @@ long DX9RENDER::TextureCreate(const char *fname)
     return -1;
 }
 
+long DX9RENDER::TextureCreate(UINT width, UINT height, UINT levels, uint32_t usage, D3DFORMAT format, D3DPOOL pool)
+{
+    IDirect3DTexture9 *texture = nullptr;
+
+    const auto result = CreateTexture(width, height, levels, usage, format, pool, &texture);
+    if (CHECKD3DERR(result))
+    {
+        return -1;
+    }
+
+    long t;
+    for (t = 0; t < MAX_STEXTURES; t++)
+    {
+        if (Textures[t].ref == 0)
+        {
+            break;
+        }
+    }
+
+    Textures[t].d3dtex = texture;
+    Textures[t].name = nullptr;
+    Textures[t].hash = 0;
+    Textures[t].ref = 1;
+    Textures[t].dwSize = width * height * 4; // Assuming 32-bit pixels
+    Textures[t].isCubeMap = false;
+    Textures[t].loaded = true;
+
+    return t;
+}
+
+bool DX9RENDER::TextureIncReference(long texid)
+{
+    ++Textures[texid].ref;
+    return true;
+}
+
 bool DX9RENDER::TextureLoad(long t)
 {
     ProgressView();
@@ -1328,6 +1408,13 @@ bool DX9RENDER::TextureLoad(long t)
     auto fileS = fio->_CreateFile(fn, std::ios::binary | std::ios::in);
     if (!fileS.is_open())
     {
+        // try to load without '.tx' (e.g. raw Targa)
+        std::filesystem::path path_to_tex{fn};
+        path_to_tex.replace_extension();
+        if (exists(path_to_tex))
+        {
+            return TextureLoadUsingD3DX(path_to_tex.string().c_str(), t);
+        }
         if (bTrace)
         {
             core.Trace("Can't load texture %s", fn);
@@ -1630,6 +1717,30 @@ bool DX9RENDER::TextureLoad(long t)
     Textures[t].loaded = true;
     // Close the file
     fio->_CloseFile(fileS);
+    return true;
+}
+
+bool DX9RENDER::TextureLoadUsingD3DX(const char* path, long t)
+{
+    // TODO: reimplement the whole thing in a tidy way
+    IDirect3DTexture9 *pTex;
+    if(CHECKD3DERR(D3DXCreateTextureFromFileA(d3d9, path, &pTex)))
+    {
+        delete Textures[t].name;
+        Textures[t].name = nullptr;
+        return false;
+    }
+
+    D3DSURFACE_DESC desc;
+    pTex->GetLevelDesc(0, &desc);
+
+    Textures[t].hash = 0;
+    Textures[t].ref = 1;
+    Textures[t].d3dtex = pTex;
+    Textures[t].isCubeMap = false;
+    Textures[t].dwSize = desc.Height * desc.Width * 4;
+    Textures[t].loaded = true;
+
     return true;
 }
 
@@ -2363,14 +2474,7 @@ void DX9RENDER::LostRender()
         return;
     }
 
-    const auto its = EntityManager::GetEntityIdIterators();
-    for (auto it = its.first; it != its.second; ++it)
-    {
-        if (!it->deleted && it->ptr != nullptr)
-        {
-            it->ptr->ProcessStage(Entity::Stage::lost_render);
-        }
-    }
+    InvokeEntitiesLostRender();
 
     Release(pOriginalScreenSurface);
     Release(pOriginalDepthSurface);
@@ -2482,14 +2586,7 @@ void DX9RENDER::RestoreRender()
 
     RecompileEffects();
 
-    const auto its = EntityManager::GetEntityIdIterators();
-    for (auto it = its.first; it != its.second; ++it)
-    {
-        if (!it->deleted && it->ptr != nullptr)
-        {
-            it->ptr->ProcessStage(Entity::Stage::restore_render);
-        }
-    }
+    InvokeEntitiesRestoreRender();
 
     resourcesReleased = false;
 }
@@ -2595,7 +2692,9 @@ void DX9RENDER::RunStart()
     // boal del_cheat
     if (core.Controls->GetDebugAsyncKeyState(VK_SHIFT) < 0 && core.Controls->GetDebugAsyncKeyState(VK_F11) < 0)
     {
+        InvokeEntitiesLostRender();
         RecompileEffects();
+        InvokeEntitiesRestoreRender();
     }
 
     SetRenderState(D3DRS_FILLMODE, (core.Controls->GetDebugAsyncKeyState('F') < 0) ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
@@ -3003,6 +3102,9 @@ void DX9RENDER::SetCommonStates()
     SetRenderState(D3DRS_LIGHTING, FALSE); // TRUE);
     SetRenderState(D3DRS_COLORVERTEX, TRUE);
     SetRenderState(D3DRS_SPECULARENABLE, FALSE); // TRUE);
+
+    // AA
+    SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, TRUE);
 }
 
 HRESULT DX9RENDER::GetViewport(D3DVIEWPORT9 *pViewport)
@@ -3658,6 +3760,23 @@ HRESULT DX9RENDER::StretchRect(IDirect3DSurface9 *pSourceSurface, const RECT *pS
 
 HRESULT DX9RENDER::GetRenderTargetData(IDirect3DSurface9 *pRenderTarget, IDirect3DSurface9 *pDestSurface)
 {
+    D3DSURFACE_DESC desc;
+    if (CHECKD3DERR(pRenderTarget->GetDesc(&desc)))
+        return static_cast<HRESULT>(false);
+
+    if (desc.MultiSampleType != D3DMULTISAMPLE_NONE)
+    {
+        IDirect3DSurface9 *pNonsampledSurface = nullptr;
+
+        CHECKD3DERR(d3d9->CreateRenderTarget(desc.Width, desc.Height, desc.Format, D3DMULTISAMPLE_NONE, 0, FALSE,
+                                             &pNonsampledSurface, nullptr));
+        CHECKD3DERR(d3d9->StretchRect(pRenderTarget, nullptr, pNonsampledSurface, nullptr, D3DTEXF_NONE));
+        
+        const auto result = CHECKD3DERR(d3d9->GetRenderTargetData(pNonsampledSurface, pDestSurface));
+        pNonsampledSurface->Release();
+        return result;
+    }
+
     return CHECKD3DERR(d3d9->GetRenderTargetData(pRenderTarget, pDestSurface));
 }
 

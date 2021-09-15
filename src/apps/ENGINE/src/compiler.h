@@ -1,9 +1,10 @@
 #pragma once
 
+#include <string_view>
+#include <tuple>
+
 #include "data.h"
 #include "message.h"
-#include "s_classtab.h"
-#include "s_compress.h"
 #include "s_deftab.h"
 #include "s_eventmsg.h"
 #include "s_eventtab.h"
@@ -14,11 +15,11 @@
 #include "script_libriary.h"
 #include "string_codec.h"
 #include "strings_list.h"
-#include "tclass_list.h"
 #include "token.h"
+#include "logging.hpp"
 
-#define COMPILER_LOG "compile"
-#define COMPILER_ERRORLOG "error"
+#include "storm/ringbuffer_stack.hpp"
+
 #define BCODE_BUFFER_BLOCKSIZE 4096
 #define IOBUFFER_SIZE 65535
 
@@ -67,31 +68,12 @@ struct DOUBLE_DWORD
 class SLIBHOLDER
 {
   public:
-    HINSTANCE hInst;
-    SCRIPT_LIBRIARY *pLib;
-    char *pName;
+    std::unique_ptr<SCRIPT_LIBRIARY> library;
+    std::string name;
 
-    SLIBHOLDER() : hInst(nullptr)
+    SLIBHOLDER(SCRIPT_LIBRIARY *library, std::string name)
+        : library(library), name(std::move(name))
     {
-        pLib = nullptr;
-        pName = nullptr;
-    };
-
-    ~SLIBHOLDER()
-    {
-        if (pLib)
-            delete pLib;
-        if (pName)
-            delete pName;
-    };
-
-    void SetName(const char *pFileName)
-    {
-        if (pName)
-            delete pName;
-        const auto len = strlen(pFileName) + 1;
-        pName = new char[len];
-        memcpy(pName, pFileName, len);
     }
 };
 
@@ -111,77 +93,8 @@ class COMPILER : public VIRTUAL_COMPILER
     friend CORE;
     friend S_DEBUG;
 
-    COMPILER_STAGE CompilerStage;
-    STRINGS_LIST LabelTable;
-    // STRINGS_LIST EventTable;
-    STRINGS_LIST LabelUpdateTable;
-    TOKEN Token;
-    MESSAGE *pEventMessage;
-    std::vector<SEGMENT_DESC> SegmentTable;
-    uint32_t SegmentsNum;
-    uint32_t RunningSegmentID;
-    uint32_t InstructionPointer;
-
-    char *pBuffer;
-    uint32_t dwCurPointer, dwMaxSize;
-
-    char *ProgramDirectory;
-    bool bCompleted;
-    bool bEntityUpdate;
-    char *pDebExpBuffer;
-    uint32_t nDebExpBufferSize;
-
-    FuncInfo *pRun_fi; // running function info
-    FuncTable FuncTab;
-    VarTable VarTab;
-    S_CLASSTAB ClassTab;
-    S_DEFTAB DefTab;
-    S_STACK SStack;
-    S_EVENTTAB EventTab;
-    // TCLASS_LIST<S_EVENTMSG> EventMsg;
-    POSTEVENTS_LIST EventMsg;
-    TCLASS_LIST<SLIBHOLDER> LibriaryFuncs;
-
-    STRING_CODEC SCodec;
-
-    bool bRuntimeLog;
-    uint32_t nRuntimeLogEventsBufferSize;
-    uint32_t nRuntimeLogEventsNum;
-    std::vector<uint32_t> pRuntimeLogEvent;
-    uint32_t nRuntimeTicks;
-
-    bool bFirstRun;
-    bool bScriptTrace;
-    bool bWriteCodeFile;
-    bool bDebugInfo;
-    char DebugSourceFileName[MAX_PATH];
-    char gs[MAX_PATH];
-    uint32_t DebugSourceLine;
-    char *pCompileTokenTempBuffer;
-
-    // HANDLE hSaveFileFileHandle;
-
-    bool bDebugExpressionRun;
-    bool bTraceMode;
-
-    bool bEventsBreak;
-
-    char DebugTraceFileName[MAX_PATH];
-    uint32_t nDebugTraceLineCode;
-
-    uint32_t nIOBufferSize;
-    uint32_t nIOFullSize;
-    char *pIOBuffer;
-
-    // script registers
-    DATA rAX;
-    DATA rBX;
-    DATA ExpressionResult;
-    ATTRIBUTES *rAP;
-
   public:
     bool bBreakOnError;
-    COMPRESS Compress;
 
     COMPILER();
     ~COMPILER();
@@ -344,4 +257,87 @@ class COMPILER : public VIRTUAL_COMPILER
     bool CompileExpression_L7(SEGMENT_DESC &Segment);
 
     DATA *GetOperand(const char *pCodeBase, uint32_t &ip, S_TOKEN_TYPE *pTokenType = nullptr);
+
+    // writes down current script stack (internal functions+script functions+events) to logfile
+    // currently used for collecting additional crash info
+    // TODO: use it for internal errors also
+    void collectCallStack();
+
+private:
+    COMPILER_STAGE CompilerStage;
+    STRINGS_LIST LabelTable;
+    // STRINGS_LIST EventTable;
+    STRINGS_LIST LabelUpdateTable;
+    TOKEN Token;
+    MESSAGE *pEventMessage;
+    std::vector<SEGMENT_DESC> SegmentTable;
+    uint32_t SegmentsNum;
+    uint32_t RunningSegmentID;
+    uint32_t InstructionPointer;
+
+    char *pBuffer;
+    uint32_t dwCurPointer, dwMaxSize;
+
+    char *ProgramDirectory;
+    bool bCompleted;
+    bool bEntityUpdate;
+    char *pDebExpBuffer;
+    uint32_t nDebExpBufferSize;
+
+    FuncInfo *pRun_fi; // running function info
+    FuncTable FuncTab;
+    VarTable VarTab;
+    S_DEFTAB DefTab;
+    S_STACK SStack;
+    S_EVENTTAB EventTab;
+    // TCLASS_LIST<S_EVENTMSG> EventMsg;
+    POSTEVENTS_LIST EventMsg;
+    std::vector<SLIBHOLDER> LibriaryFuncs;
+
+    STRING_CODEC SCodec;
+
+    bool bRuntimeLog;
+    uint32_t nRuntimeLogEventsBufferSize;
+    uint32_t nRuntimeLogEventsNum;
+    std::vector<uint32_t> pRuntimeLogEvent;
+    uint32_t nRuntimeTicks;
+
+    bool bFirstRun;
+    bool bScriptTrace;
+    bool bWriteCodeFile;
+    bool bDebugInfo;
+    char DebugSourceFileName[MAX_PATH];
+    char gs[MAX_PATH];
+    uint32_t DebugSourceLine;
+    char *pCompileTokenTempBuffer;
+
+    // HANDLE hSaveFileFileHandle;
+
+    bool bDebugExpressionRun;
+    bool bTraceMode;
+
+    bool bEventsBreak;
+
+    char DebugTraceFileName[MAX_PATH];
+    uint32_t nDebugTraceLineCode;
+
+    uint32_t nIOBufferSize;
+    uint32_t nIOFullSize;
+    char *pIOBuffer;
+
+    // script registers
+    DATA rAX;
+    DATA rBX;
+    DATA ExpressionResult;
+    ATTRIBUTES *rAP;
+
+    // loggers
+    storm::logging::logger_ptr logTrace_;
+    storm::logging::logger_ptr logError_;
+    storm::logging::logger_ptr logStack_;
+
+    // backtrace stack
+    // NB: pointers are safe as long as we pop elements before they expire
+    static constexpr size_t CALLSTACK_SIZE = 64U;
+    storm::ringbuffer_stack<std::tuple<const char *, size_t, const char *>, CALLSTACK_SIZE> callStack_;
 };

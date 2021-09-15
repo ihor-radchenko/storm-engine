@@ -1,6 +1,20 @@
-name: CI
+name: CI Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - 'tools/**'
+      - '*.md'
+  pull_request:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - 'tools/**'
+      - '*.md'
 
 jobs:
   build-windows:
@@ -8,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [msvc-debug, msvc-release]#, clang-debug]
+        configuration: [msvc-debug, msvc-release]
         enable_steam: [false]
         include:
           - enable_steam: true

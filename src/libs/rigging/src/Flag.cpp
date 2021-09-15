@@ -151,27 +151,22 @@ uint64_t FLAG::ProcessMessage(MESSAGE &message)
         const auto eidModel = message.EntityID();
         const auto nNation = message.Long();
 
-        MODEL *host_mdl;
-        host_mdl = static_cast<MODEL *>(EntityManager::GetEntityPointer(eidModel));
+        MODEL *host_mdl = static_cast<MODEL *>(EntityManager::GetEntityPointer(eidModel));
         if (host_mdl == nullptr)
         {
             core.Trace("Missing INIT message to FLAG: bad MODEL");
+            return 0;
         }
 
         if (groupQuantity == 0)
         {
             gdata = new GROUPDATA[1];
-            if (gdata == nullptr)
-                throw std::runtime_error("Not memory allocation");
-
             groupQuantity = 1;
         }
         else
         {
             auto *const oldgdata = gdata;
             gdata = new GROUPDATA[groupQuantity + 1];
-            if (gdata == nullptr)
-                throw std::runtime_error("Not memory allocation");
             memcpy(gdata, oldgdata, sizeof(GROUPDATA) * groupQuantity);
             delete oldgdata;
             groupQuantity++;
@@ -745,7 +740,7 @@ void FLAG::DoSTORM_DELETE()
         VERTEX_BUFFER_RELEASE(RenderService, vBuf);
         INDEX_BUFFER_RELEASE(RenderService, iBuf);
         flagQuantity = groupQuantity = 0;
-        delete flist;
+        delete[] flist;
         flist = nullptr;
         delete gdata;
         gdata = nullptr;
@@ -896,7 +891,7 @@ void FLAG::SetAdd(int flagNum)
 
             flist[fn]->sv = nVert;
             flist[fn]->st = nIndx;
-            flist[fn]->vectQuant; //~!~
+            flist[fn]->vectQuant; // TODO: check this ~!~
             if (flist[fn]->triangle)
             {
                 nVert += (flist[fn]->nv = flist[fn]->vectQuant * 2 + 3);

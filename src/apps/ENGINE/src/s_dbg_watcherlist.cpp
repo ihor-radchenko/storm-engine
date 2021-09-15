@@ -1,13 +1,11 @@
 #include "s_dbg_watcherlist.h"
 #include "s_debug.h"
 
-extern S_DEBUG CDebug;
+extern S_DEBUG * CDebug;
 
 WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
 {
-    long n;
-
-    SetEditMask(0xffffffff);
+   SetEditMask(0xffffffff);
 
     hMenu = nullptr;
     Initialize(hwnd, hinst, 0, 0, 0);
@@ -18,7 +16,7 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
     AddColumn("Name", (3 * xs) / 5 - 20);
     AddColumn("Value", xs - (3 * xs) / 5 - 20);
 
-    for (n = 0; n < 11; n++)
+    for (long n = 0; n < 11; n++)
     {
         AddItem("");
     }
@@ -26,17 +24,14 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
     char buffer[256];
 
     ini = fio->OpenIniFile("project.df");
-    n = 0;
     if (ini)
     {
+        long n = 0;
         sprintf_s(buffer, "E%d", n);
         if (ini->ReadString(nullptr, buffer, buffer, sizeof(buffer), ""))
         {
-            if (n < 11) //~!~
-            {
-                SetItemText(n, 0, buffer);
-                SetItemText(n, 1, CDebug.ProcessExpression(buffer));
-            }
+            SetItemText(n, 0, buffer);
+            SetItemText(n, 1, CDebug->ProcessExpression(buffer));
             n++;
 
             sprintf_s(buffer, "E%d", n);
@@ -45,7 +40,7 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
                 if (n < 11)
                 {
                     SetItemText(n, 0, buffer);
-                    SetItemText(n, 1, CDebug.ProcessExpression(buffer));
+                    SetItemText(n, 1, CDebug->ProcessExpression(buffer));
                 }
                 n++;
                 sprintf_s(buffer, "E%d", n);
@@ -60,7 +55,7 @@ WATCHER_LIST::WATCHER_LIST(HWND hwnd, HINSTANCE hinst)
                 if (ini->ReadString(nullptr, buffer, buffer, sizeof(buffer), ""))
                 {
                     SetItemText(n, 0, buffer);
-                    SetItemText(n, 1, CDebug.ProcessExpression(buffer));
+                    SetItemText(n, 1, CDebug->ProcessExpression(buffer));
                 }
             }
         }
@@ -82,8 +77,8 @@ WATCHER_LIST::~WATCHER_LIST()
 
 void WATCHER_LIST::ItemChanged(long Item_index, long Subitem_index)
 {
-    char buffer[MAX_PATH];
-    char buffer2[MAX_PATH];
+    char buffer[MAX_PATH]{};
+    char buffer2[MAX_PATH]{};
     char keyname[32];
     //    char name[MAX_PATH];
     // GetItemText(Item_index,0,name,sizeof(name));
@@ -91,15 +86,15 @@ void WATCHER_LIST::ItemChanged(long Item_index, long Subitem_index)
     switch (Subitem_index)
     {
     case 0:
-        SetItemText(Item_index, 1, CDebug.ProcessExpression(buffer));
+        SetItemText(Item_index, 1, CDebug->ProcessExpression(buffer));
         sprintf_s(keyname, "E%d", Item_index);
         ini->WriteString(nullptr, keyname, buffer);
         break;
     case 1:
         GetItemText(Item_index, 0, buffer, sizeof(buffer));
         GetItemText(Item_index, 1, buffer2, sizeof(buffer2));
-        CDebug.SetOnDebugExpression(buffer, buffer2);
-        SetItemText(Item_index, 1, CDebug.ProcessExpression(buffer));
+        CDebug->SetOnDebugExpression(buffer, buffer2);
+        SetItemText(Item_index, 1, CDebug->ProcessExpression(buffer));
 
         break;
     }
@@ -107,11 +102,11 @@ void WATCHER_LIST::ItemChanged(long Item_index, long Subitem_index)
 
 void WATCHER_LIST::Refresh()
 {
-    char String[MAX_PATH];
+    char String[MAX_PATH]{};
     for (long n = 0; n < GetItemsCount(); n++)
     {
         GetItemText(n, 0, String, sizeof(String));
-        SetItemText(n, 1, CDebug.ProcessExpression(String));
+        SetItemText(n, 1, CDebug->ProcessExpression(String));
     }
 }
 

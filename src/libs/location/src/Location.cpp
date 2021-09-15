@@ -125,13 +125,13 @@ void Location::Execute(uint32_t delta_time)
     auto *grs = static_cast<Grass *>(EntityManager::GetEntityPointer(grass));
     if (grs)
     {
-        for (long i = 0; i < supervisor.numCharacters; i++)
+        grs->characters.resize(supervisor.character.size());
+        for (size_t i = 0; i < supervisor.character.size(); i++)
         {
             supervisor.character[i].c->GetGrassPosition(grs->characters[i].pos, grs->characters[i].lastPos);
             grs->characters[i].chr = supervisor.character[i].c;
             grs->characters[i].useCounter = 0;
         }
-        grs->numCharacters = supervisor.numCharacters;
     }
     // Location update
     locationTimeUpdate += dltTime;
@@ -389,6 +389,12 @@ uint64_t Location::ProcessMessage(MESSAGE &message)
         la->SetLocatorRadius(i, message.Float());
         return 1;
     }
+    case MSG_LOCATION_LOC_EXISTS: {
+        const std::string &name = message.String();
+        if (CheckIfLocatorExists(name.c_str()))
+            return 1;
+        return 0;
+    }
     case MSG_LOCATION_CHECKENTRY:
         u0 = message.Float(); // x
         v0 = message.Float(); // y
@@ -440,6 +446,19 @@ LocatorArray *Location::FindLocatorsGroup(const char *gName)
             return locators[i];
     }
     return nullptr;
+}
+
+bool Location::CheckIfLocatorExists(const char *lName)
+{
+    for (long i = 0; i < numLocators; i++)
+    {
+        if (locators[i]->FindByName(lName) != -1)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 long Location::LoadStaticModel(const char *modelName, const char *tech, long level, bool useDynamicLights)

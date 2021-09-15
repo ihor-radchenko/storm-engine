@@ -14,18 +14,46 @@
 #include <SDL.h>
 
 VFILE_SERVICE *fio = nullptr;
+S_DEBUG *CDebug = nullptr;
 CORE core;
-S_DEBUG CDebug;
 
 namespace
 {
 
 constexpr char defaultLoggerName[] = "system";
-bool isHold = false;
 bool isRunning = false;
 bool bActive = true;
 
 storm::diag::LifecycleDiagnosticsService lifecycleDiagnostics;
+
+void RunFrame()
+{
+    if (!core.Run())
+    {
+        isRunning = false;
+    }
+
+    lifecycleDiagnostics.notifyAfterRun();
+}
+
+#ifdef _WIN32
+void RunFrameWithOverflowCheck()
+{
+    __try
+    {
+        RunFrame();
+    }
+    __except ([](unsigned code, struct _EXCEPTION_POINTERS *ep) {
+        return code == EXCEPTION_STACK_OVERFLOW;
+    }(GetExceptionCode(), GetExceptionInformation()))
+    {
+        _resetstkoflw();
+        throw std::runtime_error("Stack overflow");
+    }
+}
+#else
+#define RunFrameWithOverflowCheck RunFrame
+#endif
 
 } // namespace
 
@@ -55,7 +83,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         GetLastError() == ERROR_ALREADY_EXISTS)
     {
         MessageBoxA(nullptr, "Another instance is already running!", "Error", MB_ICONERROR);
-        return 0;
+        return EXIT_SUCCESS;
     }
 
     SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
@@ -75,6 +103,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     {
         spdlog::error("Unable to initialize lifecycle service");
     }
+    else
+    {
+        lifecycleDiagnostics.setCrashInfoCollector([]() { core.collectCrashInfo(); });
+    }
 
     // Init stash
     create_directories(fs::GetSaveDataPath());
@@ -86,9 +118,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     core.Init();
 
     // Init script debugger
-    CDebug.Init();
+    S_DEBUG debug;
+    debug.Init();
+    CDebug = &debug;
 
-    /* Read config */
+    // Read config
     auto ini = fio->OpenIniFile(fs::ENGINE_INI_FILE_NAME);
 
     uint32_t dwMaxFPS = 0;
@@ -111,8 +145,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
         bSteam = ini->GetLong(nullptr, "Steam", 1) != 0;
     }
 
-    // evaluate SteamApi singleton
-    steamapi::SteamApi::getInstance(!bSteam);
+    // initialize SteamApi through evaluating its singleton
+    try
+    {
+        steamapi::SteamApi::getInstance(!bSteam);
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::critical(e.what());
+        return EXIT_FAILURE;
+    }
 
     std::shared_ptr<storm::OSWindow> window = storm::OSWindow::Create(width, height, fullscreen);
     window->SetTitle("Sea Dogs");
@@ -120,10 +162,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     window->Subscribe(HandleWindowEvent);
     window->Show();
 
-    /* Init stuff */
+    // Init core
     core.InitBase();
 
-    /* Message loop */
+    // Message loop
     auto dwOldTime = GetTickCount();
 
     isRunning = true;
@@ -142,30 +184,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
                     continue;
                 dwOldTime = dwNewTime;
             }
-            const auto runResult = core.Run();
-            if (!isHold && !runResult)
-            {
-                isHold = true;
-                isRunning = false;
-            }
 
-            lifecycleDiagnostics.notifyAfterRun();
+            RunFrameWithOverflowCheck();
         }
         else
         {
             Sleep(50);
         }
     }
-    core.Event("ExitApplication", nullptr);
-    CDebug.Release();
-    core.CleanUp();
-    CDebug.CloseDebugWindow();
 
-    /* Release */
+    // Release
+    core.Event("ExitApplication", nullptr);
+    core.CleanUp();
     core.ReleaseBase();
     ClipCursor(nullptr);
-
     SDL_Quit();
 
-    return 0;
+    return EXIT_SUCCESS;
 }

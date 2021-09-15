@@ -21,7 +21,7 @@
 
 // extern char * FuncNameTable[];
 extern INTFUNCDESC IntFuncTable[];
-extern S_DEBUG CDebug;
+extern S_DEBUG * CDebug;
 extern uint32_t dwNumberScriptCommandsExecuted;
 
 COMPILER::COMPILER()
@@ -48,8 +48,6 @@ COMPILER::COMPILER()
     pRunCodeBase = nullptr;
     SStack.SetVCompiler(this);
     VarTab.SetVCompiler(this);
-    ClassTab.SetVCompiler(this);
-    ClassTab.InitSystemClasses();
     srand(GetTickCount());
     bEntityUpdate = true;
     pDebExpBuffer = nullptr;
@@ -73,6 +71,12 @@ COMPILER::COMPILER()
     // bScriptTrace = false;
     bFirstRun = true;
     pBuffer = nullptr;
+
+    using storm::logging::getOrCreateLogger;
+    logTrace_ = getOrCreateLogger("compile");
+    logError_ = getOrCreateLogger("error");
+    logStack_ = getOrCreateLogger("script_stack");
+    logStack_->set_pattern("%v");
 }
 
 COMPILER::~COMPILER()
@@ -160,13 +164,12 @@ void COMPILER::Release()
 
     FuncTab.Release();
     VarTab.Release();
-    ClassTab.Release();
     DefTab.Release();
     SStack.Release();
     EventTab.Release();
     EventMsg.Release();
     SCodec.Release();
-    LibriaryFuncs.Release();
+    LibriaryFuncs.clear();
 
     delete pDebExpBuffer;
     pDebExpBuffer = nullptr;
@@ -192,7 +195,7 @@ void COMPILER::SetProgramDirectory(const char *dir_name)
         strcpy_s(ProgramDirectory, len, dir_name);
         strcat_s(ProgramDirectory, len, "\\");
     }
-    CDebug.SetProgramDirectory(dir_name);
+    CDebug->SetProgramDirectory(dir_name);
 }
 
 // load file into memory
@@ -279,7 +282,7 @@ void COMPILER::Trace(const char *data_PTR, ...)
     va_start(args, data_PTR);
     _vsnprintf_s(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
     va_end(args);
-    storm::logging::getOrCreateLogger(COMPILER_LOG)->trace(LogBuffer);
+    logTrace_->trace(LogBuffer);
 }
 
 // write to compilation log file
@@ -295,7 +298,7 @@ void COMPILER::DTrace(const char *data_PTR, ...)
     va_start(args, data_PTR);
     _vsnprintf_s(LogBuffer, sizeof(LogBuffer) - 4, data_PTR, args);
     va_end(args);
-    storm::logging::getOrCreateLogger(COMPILER_LOG)->trace(LogBuffer);
+    logTrace_->trace(LogBuffer);
 }
 
 // append one block of code to another
@@ -384,10 +387,10 @@ void COMPILER::SetError(const char *data_PTR, ...)
     }
     va_end(args);
 
-    storm::logging::getOrCreateLogger(COMPILER_ERRORLOG)->error(ErrorBuffer);
+    logError_->error(ErrorBuffer);
 
     if (bBreakOnError)
-        CDebug.SetTraceMode(TMODE_MAKESTEP);
+        CDebug->SetTraceMode(TMODE_MAKESTEP);
 }
 
 void COMPILER::SetWarning(const char *data_PTR, ...)
@@ -410,7 +413,7 @@ void COMPILER::SetWarning(const char *data_PTR, ...)
     sprintf_s(ErrorBuffer, "WARNING in %s(%d): %s", DebugSourceFileName, DebugSourceLine + 1, LogBuffer);
     va_end(args);
 
-    storm::logging::getOrCreateLogger(COMPILER_ERRORLOG)->warn(ErrorBuffer);
+    logTrace_->warn(ErrorBuffer);
 }
 
 void COMPILER::LoadPreprocess()
@@ -653,6 +656,11 @@ void COMPILER::DelEventHandler(const char *event_name, const char *func_name)
 
 VDATA *COMPILER::ProcessEvent(const char *event_name)
 {
+    // TODO: only do if stack debug if enabled (should be runtime configurable)
+    // push event name to call stack
+    storm::ringbuffer_stack_push_guard push_guard(callStack_);
+    push_guard.push(std::make_tuple("", 0U, event_name));
+
     uint32_t event_code;
     uint32_t func_code;
     VDATA *pVD;
@@ -668,7 +676,7 @@ VDATA *COMPILER::ProcessEvent(const char *event_name)
     bEventsBreak = false;
 
     uint32_t nTimeOnEvent = GetTickCount();
-    current_debug_mode = CDebug.GetTraceMode();
+    current_debug_mode = CDebug->GetTraceMode();
 
     pVD = nullptr;
     if (event_name == nullptr)
@@ -742,7 +750,7 @@ VDATA *COMPILER::ProcessEvent(const char *event_name)
     pRun_fi = nullptr;
 
     if (current_debug_mode == TMODE_CONTINUE)
-        CDebug.SetTraceMode(TMODE_CONTINUE);
+        CDebug->SetTraceMode(TMODE_CONTINUE);
     // SetFocus(core.App_Hwnd);        // VANO CHANGES
 
     RDTSC_E(dwRDTSC);
@@ -801,7 +809,6 @@ void COMPILER::UnloadSegment(const char *segment_name)
             SegmentTable[n].bUnload = true;
             FuncTab.InvalidateBySegmentID(segment_id);
             VarTab.InvalidateBySegmentID(segment_id);
-            ClassTab.InvalidateBySegmentID(segment_id);
             EventTab.InvalidateBySegmentID(segment_id);
             DefTab.InvalidateBySegmentID(segment_id);
             if (SegmentTable[n].Files_list)
@@ -895,7 +902,6 @@ bool COMPILER::BC_LoadSegment(const char *file_name)
         SegmentTable.resize(SegmentsNum);
         FuncTab.InvalidateBySegmentID(id);
         VarTab.InvalidateBySegmentID(id);
-        ClassTab.InvalidateBySegmentID(id);
         EventTab.InvalidateBySegmentID(id);
         DefTab.InvalidateBySegmentID(id);
     }
@@ -1223,8 +1229,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     VarInfo vi = {};
     const VarInfo *real_var = nullptr;
     LocalVarInfo lvi;
-    CLASSINFO ci;
-    CLASSINFO cci;
     uint32_t SegmentSize;
     uint32_t Program_size;
     uint32_t func_code;
@@ -1240,7 +1244,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
     STRINGS_LIST BlockTable;
     S_TOKEN_TYPE Token_type;
     DEFINFO di;
-    CLASS_COMPONENT cc;
 
     CompilerStage = CS_COMPILATION;
 
@@ -1347,27 +1350,22 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
             DebugSourceLine = DSL_INI_VALUE;
             strcpy_s(DebugSourceFileName, Token.GetData());
             break;
-        case INCLUDE_LIBRIARY:
+        case INCLUDE_LIBRIARY: {
             SCRIPT_LIBRIARY *pLib;
-            SLIBHOLDER *pH;
-            bool bFound;
             VMA *pClass;
 
             //-----------------------------------------------------
             // check if already loaded
-            bFound = false;
-            for (n = 0; n < LibriaryFuncs.GetClassesNum(); n++)
+            auto name = std::string_view(Token.GetData());
+            auto comparator = [name](const auto &library)
             {
-                pH = LibriaryFuncs.Read(n);
-                if (_stricmp(pH->pName, Token.GetData()) == 0)
-                {
-                    // already loaded
-                    bFound = true;
-                    break;
-                }
-            }
-            if (bFound)
+                return storm::iEquals(library.name, name);
+            };
+
+            if (std::ranges::find_if(LibriaryFuncs, comparator) != LibriaryFuncs.end())
+            {
                 break;
+            }
             //-----------------------------------------------------
 
             pClass = core.FindVMA(Token.GetData());
@@ -1381,12 +1379,10 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
             if (pLib)
                 pLib->Init();
 
-            pH = new SLIBHOLDER;
-            pH->pLib = pLib;
-            pH->SetName(Token.GetData());
-            LibriaryFuncs.Add(pH);
+            LibriaryFuncs.emplace_back(pLib, Token.GetData());
 
             break;
+        }
         case INCLIDE_FILE:
             if (Segment.Files_list->AddUnicalString(Token.GetData()))
             {
@@ -1668,7 +1664,7 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                                         if (bNeg)
                                             real_var->value->Set(-atol(Token.GetData()), aindex);
                                         else
-                                            real_var->value->Set(static_cast<long>(atoll(Token.GetData())));
+                                            real_var->value->Set(static_cast<long>(atoll(Token.GetData())), aindex);
                                         aindex++;
                                         break;
                                     case FLOAT_NUMBER:
@@ -1842,158 +1838,6 @@ bool COMPILER::Compile(SEGMENT_DESC &Segment, char *pInternalCode, uint32_t pInt
                 Token.StepBack();
             }
             break;
-            // class declaration -------------------
-        case CLASS_DECL: {
-            if (bDotFlag)
-                break;
-
-            // get class name
-            Token.Get();
-            if (Token.GetData() == nullptr)
-            {
-                SetError("Invalid class name");
-                break;
-            }
-            memset(&ci, 0, sizeof(ci));
-
-            // const auto len = strlen(Token.GetData()) + 1;
-            // ci.name = (char *)new char[len];
-            // memcpy(ci.name, Token.GetData(), len);
-            ci.name = _strdup(Token.GetData());
-
-            // start processing class components
-            if (SkipAuxiliaryTokens() != BLOCK_IN)
-            {
-                SetError("missed '{'");
-                return false;
-            }
-
-            while (SkipAuxiliaryTokens() != BLOCK_OUT)
-            {
-                memset(&cc, 0, sizeof(cc));
-                Token.StepBack();             // step on last token, for ReGet operation
-                Token_type = Token.Get(true); // get with token string keeped
-
-                // get component class ID (class registred only and must be filled with data at the end
-                // of first pass)
-                memset(&cci, 0, sizeof(cci));
-                cci.name = Token.GetData();
-                cc.nID = ClassTab.AddClass(cci, true);
-
-                // start processing components with the same class type
-                do
-                {
-                    // now get the component name
-                    if (Token.Get() != UNKNOWN)
-                    {
-                        SetError("wrong variable or function name");
-                        return false;
-                    }
-                    // note: component name memory will be deleted by ClassTab
-
-                    const auto len = strlen(Token.GetData()) + 1;
-                    cc.name = static_cast<char *>(new char[len]);
-                    memcpy(cc.name, Token.GetData(), len);
-                    cc.nElements = 1; // assumed for all except arrays
-
-                    // now we determine type of component - variable or function
-                    switch (Token.Get())
-                    {
-                    case SEPARATOR: {
-                        // this is single variable declaration
-                        // add class component
-                        cc.nFlags = CCF_VARIABLE;
-                        ci.nComponentsNum++;
-                        // ci.pComponent = (CLASS_COMPONENT *)RESIZE(ci.pComponent, ci.nComponentsNum *
-                        // sizeof(CLASS_COMPONENT));
-                        auto *newPtr = new CLASS_COMPONENT[ci.nComponentsNum];
-                        memcpy(newPtr, ci.pComponent, (ci.nComponentsNum - 1) * sizeof(CLASS_COMPONENT));
-                        delete[] ci.pComponent;
-                        ci.pComponent = newPtr;
-
-                        ci.pComponent[ci.nComponentsNum - 1] = cc;
-                    }
-                    break;
-                    case OPEN_BRACKET:
-                        // this is function declaration
-                        // for now just skip
-                        while (Token.Get() != SEPARATOR)
-                        {
-                        }
-                        break;
-                    case SQUARE_OPEN_BRACKET: {
-                        // this is array declaration
-                        switch (Token.Get()) // array dimension
-                        {
-                        case NUMBER:
-                            cc.nElements = static_cast<long>(atoll(Token.GetData()));
-                            break;
-                        case UNKNOWN:
-                            if (!DefTab.GetDef(di, DefTab.FindDef(Token.GetData())))
-                            {
-                                SetError("invalid array size");
-                                return false;
-                            }
-                            if (di.deftype != NUMBER)
-                            {
-                                SetError("invalid array size");
-                                return false;
-                            }
-                            cc.nElements = di.data4b;
-                            break;
-                        default:
-                            SetError("invalid array size");
-                            return false;
-                        }
-
-                        Token.Get(); // square close bracket
-                        Token.Get(); // next token
-                        cc.nFlags = CCF_VARARRAY;
-                        ci.nComponentsNum++;
-                        // ci.pComponent = (CLASS_COMPONENT *)RESIZE(ci.pComponent, ci.nComponentsNum *
-                        // sizeof(CLASS_COMPONENT));
-                        auto *newPtr = new CLASS_COMPONENT[ci.nComponentsNum];
-                        memcpy(newPtr, ci.pComponent, (ci.nComponentsNum - 1) * sizeof(CLASS_COMPONENT));
-                        delete[] ci.pComponent;
-                        ci.pComponent = newPtr;
-
-                        ci.pComponent[ci.nComponentsNum - 1] = cc;
-                    }
-                    break;
-                    case COMMA: {
-                        // this is several variables declaration
-                        // add class component
-                        cc.nFlags = CCF_VARIABLE;
-                        ci.nComponentsNum++;
-                        // ci.pComponent = (CLASS_COMPONENT *)RESIZE(ci.pComponent, ci.nComponentsNum *
-                        // sizeof(CLASS_COMPONENT));
-                        auto *newPtr = new CLASS_COMPONENT[ci.nComponentsNum];
-                        memcpy(newPtr, ci.pComponent, (ci.nComponentsNum - 1) * sizeof(CLASS_COMPONENT));
-                        delete[] ci.pComponent;
-                        ci.pComponent = newPtr;
-
-                        ci.pComponent[ci.nComponentsNum - 1] = cc;
-                    }
-                    break;
-
-                    default:
-                        break;
-                    }
-                } while (Token.GetType() != SEPARATOR);
-            }
-
-            if (SkipAuxiliaryTokens() != SEPARATOR)
-            {
-                SetError("missed ';'");
-                return false;
-            }
-            ClassTab.AddClass(ci);
-
-            delete ci.pComponent;
-            delete ci.name;
-
-            break;
-        }
 
         case BLOCK_IN:
             inout++;
@@ -3605,30 +3449,6 @@ bool COMPILER::CompileBlock(SEGMENT_DESC &Segment, bool &bFunctionBlock, uint32_
 
             break;
 
-        case CLASS_DECL:
-            // skip class declaration
-            Token.Get(); // class name
-            long nBalance;
-            if (SkipAuxiliaryTokens() != BLOCK_IN)
-            {
-                SetError("invalid class declaration");
-                return false;
-            }
-            nBalance = 1;
-            while (nBalance > 0)
-            {
-                switch (Token.Get())
-                {
-                case BLOCK_IN:
-                    nBalance++;
-                    break;
-                case BLOCK_OUT:
-                    nBalance--;
-                    break;
-                }
-            }
-            break;
-
         default:
 
             break;
@@ -3730,6 +3550,11 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
         return false;
     }
 
+    // TODO: only do if stack debug if enabled (should be runtime configurable)
+    // push function details to call stack
+    storm::ringbuffer_stack_push_guard push_guard(callStack_);
+    push_guard.push(std::make_tuple(call_fi.decl_file_name.c_str(), call_fi.decl_line, call_fi.name.c_str()));
+
     // number f arguments pushed into stack for this function call
     if (BC_TokenGet() != ARGS_NUM)
     {
@@ -3786,7 +3611,7 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
     mem_pfi = pRun_fi;
     mem_codebase = pRunCodeBase;
 
-    nDebugEnterMode = CDebug.GetTraceMode();
+    nDebugEnterMode = CDebug->GetTraceMode();
     uint64_t nTicks;
     if (call_fi.segment_id == INTERNAL_SEGMENT_ID)
     {
@@ -3839,7 +3664,7 @@ bool COMPILER::BC_CallFunction(uint32_t func_code, uint32_t &ip, DATA *&pVResult
     }
     if (nDebugEnterMode == TMODE_MAKESTEP)
     {
-        CDebug.SetTraceMode(TMODE_MAKESTEP);
+        CDebug->SetTraceMode(TMODE_MAKESTEP);
     }
 
     if (pVResult)
@@ -4400,46 +4225,46 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
             memcpy(&nDebugTraceLineCode, &pCodeBase[ip], sizeof(uint32_t));
             if (bTraceMode)
             {
-                if (CDebug.GetTraceMode() == TMODE_MAKESTEP || CDebug.GetTraceMode() == TMODE_MAKESTEP_OVER)
+                if (CDebug->GetTraceMode() == TMODE_MAKESTEP || CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
                 {
-                    if (CDebug.GetTraceMode() == TMODE_MAKESTEP_OVER && bDebugWaitForThisFunc == false)
+                    if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER && bDebugWaitForThisFunc == false)
                         break;
 
-                    if (!CDebug.IsDebug())
-                        CDebug.OpenDebugWindow(core.GetAppInstance());
+                    if (!CDebug->IsDebug())
+                        CDebug->OpenDebugWindow(core.GetAppInstance());
                     // else
-                    ShowWindow(CDebug.GetWindowHandle(), SW_NORMAL);
+                    ShowWindow(CDebug->GetWindowHandle(), SW_NORMAL);
 
-                    CDebug.SetTraceLine(nDebugTraceLineCode);
-                    CDebug.BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
-                    CDebug.SetTraceMode(TMODE_WAIT);
-                    while (CDebug.GetTraceMode() == TMODE_WAIT)
+                    CDebug->SetTraceLine(nDebugTraceLineCode);
+                    CDebug->BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
+                    CDebug->SetTraceMode(TMODE_WAIT);
+                    while (CDebug->GetTraceMode() == TMODE_WAIT)
                     {
                         Sleep(40);
                     }
-                    if (CDebug.GetTraceMode() == TMODE_MAKESTEP_OVER)
+                    if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
                         bDebugWaitForThisFunc = true;
                     else
                         bDebugWaitForThisFunc = false;
                 }
-                else if (CDebug.Breaks.CanBreak())
+                else if (CDebug->Breaks.CanBreak())
                 {
                     // check for breakpoint
-                    if (CDebug.Breaks.Find(fi.decl_file_name.c_str(), nDebugTraceLineCode))
+                    if (CDebug->Breaks.Find(fi.decl_file_name.c_str(), nDebugTraceLineCode))
                     {
-                        if (!CDebug.IsDebug())
-                            CDebug.OpenDebugWindow(core.GetAppInstance());
+                        if (!CDebug->IsDebug())
+                            CDebug->OpenDebugWindow(core.GetAppInstance());
 
-                        ShowWindow(CDebug.GetWindowHandle(), SW_NORMAL);
-                        // CDebug.OpenDebugWindow(core.hInstance);
-                        CDebug.SetTraceMode(TMODE_WAIT);
-                        CDebug.BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
+                        ShowWindow(CDebug->GetWindowHandle(), SW_NORMAL);
+                        // CDebug->OpenDebugWindow(core.hInstance);
+                        CDebug->SetTraceMode(TMODE_WAIT);
+                        CDebug->BreakOn(fi.decl_file_name.c_str(), nDebugTraceLineCode);
 
-                        while (CDebug.GetTraceMode() == TMODE_WAIT)
+                        while (CDebug->GetTraceMode() == TMODE_WAIT)
                         {
                             Sleep(40);
                         } // wait for debug thread decision
-                        if (CDebug.GetTraceMode() == TMODE_MAKESTEP_OVER)
+                        if (CDebug->GetTraceMode() == TMODE_MAKESTEP_OVER)
                             bDebugWaitForThisFunc = true;
                         else
                             bDebugWaitForThisFunc = false;
@@ -5200,7 +5025,7 @@ bool COMPILER::BC_Execute(uint32_t function_code, DATA *&pVReturnResult, const c
                     return false;
                 if (pVDst->GetType() != VAR_REFERENCE)
                 {
-                    SetError("'%s' isnt reference", real_var->name.c_str());
+                    SetError("Local variable is not reference");
                     return false;
                 }
                 break;
@@ -6212,7 +6037,7 @@ ATTRIBUTES *COMPILER::TraceARoot(ATTRIBUTES *pA, const char *&pAccess)
         const auto len = slen + strlen(pAccess) + 1;
         // pAS = (char *)RESIZE(pAS, len);
         auto *const newPtr = new char[len];
-        memcpy(newPtr, pAS, len);
+        memcpy(newPtr, pAS, slen);
         delete[] pAS;
         pAS = newPtr;
         strcat_s(pAS, len, ".");
@@ -6631,9 +6456,6 @@ bool COMPILER::OnLoad()
 bool COMPILER::SaveState(std::fstream &fileS)
 {
     uint32_t n;
-    const VarInfo *real_var;
-    const VarInfo *last_var;
-
     delete pBuffer;
     pBuffer = nullptr;
 
@@ -6686,9 +6508,10 @@ bool COMPILER::SaveState(std::fstream &fileS)
     const uint32_t nVarNum = VarTab.GetVarNum();
     WriteVDword(nVarNum);
 
+    const VarInfo *last_var{ nullptr };
     for (n = 0; n < nVarNum; n++)
     {
-        real_var = VarTab.GetVar(n);
+        const VarInfo *real_var = VarTab.GetVar(n);
         if (real_var == nullptr)
         {
             real_var = last_var; // preserve old semanthics
@@ -7260,6 +7083,35 @@ DATA *COMPILER::GetOperand(const char *pCodeBase, uint32_t &ip, S_TOKEN_TYPE *pT
     return nullptr;
 }
 
+void COMPILER::collectCallStack()
+{
+    logStack_->trace("Call stack:");
+    auto callStackCopy = callStack_;
+    while (!callStackCopy.empty())
+    {
+        const auto &record = callStackCopy.back();
+
+        const auto &filename = std::get<0>(record);
+        const auto &line = std::get<1>(record);
+        const auto &name = std::get<2>(record);
+
+        if (filename[0] == '\0')
+        {
+            logStack_->trace("{} (EVENT)", name);
+        }
+        else if (strcmp(filename, "engine") == 0)
+        {
+            logStack_->trace("{} (INTERNAL FUNCTION)", name);
+        }
+        else
+        {
+            logStack_->trace("{} (FUNCTION) at {}:{}", name, filename, line);
+        }
+
+        callStackCopy.pop();
+    }
+}
+
 void COMPILER::FormatAllDialog(const char *directory_name)
 {
     const auto vPaths = fio->_GetPathsOrFilenamesByMask(directory_name, "*.c", true);
@@ -7277,7 +7129,7 @@ void COMPILER::FormatDialog(char *file_name)
     TOKEN Token;
     S_TOKEN_TYPE Token_type;
     char sFileName[MAX_PATH];
-    char buffer[MAX_PATH];
+    char buffer[MAX_PATH]{};
     char sNewLine[] = {0xd, 0xa, 0};
     bool bExportString;
 
@@ -7523,5 +7375,5 @@ void COMPILER::FormatDialog(char *file_name)
 
 void STRING_CODEC::VariableChanged()
 {
-    CDebug.SetTraceMode(TMODE_MAKESTEP);
+    CDebug->SetTraceMode(TMODE_MAKESTEP);
 }

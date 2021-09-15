@@ -22,6 +22,8 @@
 #define MSG_MODEL_SET_FOG 20511
 #define MSG_MODEL_SET_MAX_VIEW_DIST 20512
 
+#define MSG_MODEL_SUBSTITUTE_GEOMETRY_NODE 20600 // "ss", geometry, new model name
+
 //============================================================================================
 // blade messages
 //============================================================================================
@@ -103,6 +105,7 @@
 // Radius of locators
 #define MSG_LOCATION_GRP_RADIUS 30125 // "lsf" set the radius to the locator group
 #define MSG_LOCATION_LOC_RADIUS 30126 // "lssf" set the radius to the locator
+#define MSG_LOCATION_LOC_EXISTS 30127 // "lssf" set the radius to the locator
 // Add light source
 #define MSG_LOCATION_ADD_LIGHT 30128 // "lsfff" source name, source position
 // Register locators
@@ -200,6 +203,7 @@
 #define MSG_CAMERA_FREE 30514 // "l" free flight of the camera
 
 #define MSG_CAMERA_SLEEP 30520 // "ll" stop the camera (1) or resume (0)
+#define MSG_CAMERA_SET_RADIUS 30521 // "lf" set radius
 
 // Blots on the ship
 #define MSG_BLOTS_SETMODEL 30600 // "li" set the model, model_id

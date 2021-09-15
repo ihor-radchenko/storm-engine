@@ -1301,8 +1301,15 @@ uint64_t SHIP::ProcessMessage(MESSAGE &message)
         core.Send_Message(GetModelEID(), "ls", MSG_MODEL_SET_TECHNIQUE, sTech.c_str());
         //       MODEL * pModel = GetModel();
         //       NODE* pNode = pModel->GetNode(0);
+        break;
     }
-    break;
+    case MSG_MODEL_SUBSTITUTE_GEOMETRY_NODE: {
+        auto &&geometry_node = message.String();
+        auto &&new_model_name = message.String();
+        core.Send_Message(GetModelEID(), "lss", MSG_MODEL_SUBSTITUTE_GEOMETRY_NODE, geometry_node.c_str(),
+                          new_model_name.c_str());
+        break;
+    }
     }
     return 0;
 }
@@ -1452,6 +1459,7 @@ bool SHIP::Mount(ATTRIBUTES *_pAShip)
 
     const entid_t temp_id = GetId();
     core.Send_Message(touch_id, "li", MSG_SHIP_CREATE, temp_id);
+    // TODO: this is wrong
     core.Send_Message(sea_id, "lic", MSG_SHIP_CREATE, temp_id,
                       CVECTOR(State.vPos.x + fXOffset, State.vPos.y, State.vPos.z + fZOffset));
 
@@ -1727,19 +1735,30 @@ float SHIP::Cannon_Trace(long iBallOwner, const CVECTOR &vSrc, const CVECTOR &vD
             }
         }
 
-    for (long i = 0; i < iNumHulls; i++)
-        if (!pHulls[i].bBroken)
-        {
-            hull_t *pM = &pHulls[i];
-            const float fRes = pM->pNode->Trace(vSrc, vDst);
-
-            if (fRes <= 1.0f)
+    if (core.GetTargetEngineVersion() >= storm::ENGINE_VERSION::TO_EACH_HIS_OWN)
+    {
+        for (long i = 0; i < iNumHulls; i++)
+            if (!pHulls[i].bBroken)
             {
-                const CVECTOR v1 = vSrc + fRes * (vDst - vSrc);
-                VDATA *pV = core.Event(SHIP_HULL_DAMAGE, "llffffaas", SHIP_HULL_TOUCH_BALL, pM->iHullNum, v1.x, v1.y,
-                                       v1.z, pM->fDamage, GetACharacter(), iBallOwner, pM->pNode->GetName());
-                pM->fDamage = Clamp(pV->GetFloat());
-                HullFall(pM);
+                hull_t *pM = &pHulls[i];
+                const float fRes = pM->pNode->Trace(vSrc, vDst);
+
+                if (fRes <= 1.0f)
+                {
+                    const CVECTOR v1 = vSrc + fRes * (vDst - vSrc);
+
+                    VDATA *pV = core.Event(SHIP_HULL_DAMAGE, "llffffaas", SHIP_HULL_TOUCH_BALL, pM->iHullNum, v1.x,
+                                           v1.y, v1.z, pM->fDamage, GetACharacter(), iBallOwner, pM->pNode->GetName());
+                    if (pV)
+                    {
+                        pM->fDamage = Clamp(pV->GetFloat());
+                        HullFall(pM);
+                    }
+                    else
+                    {
+                        spdlog::warn("no answer from SHIP_HULL_DAMAGE evt");
+                    }
+                }
             }
         }
 

@@ -252,11 +252,11 @@ bool XINTERFACE::LoadState(ENTITY_STATE *state)
     return true;
 }
 
-void XINTERFACE::Execute(uint32_t Delta_Time)
+void XINTERFACE::Execute(uint32_t)
 {
     m_UtilContainer.FrameUpdate();
 
-    Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core.GetRDeltaTime();
     if (!bActive)
         return;
     IncrementGameTime(Delta_Time);
@@ -319,14 +319,14 @@ void XINTERFACE::Execute(uint32_t Delta_Time)
         m_pMouseWeel->Set(0L);
 }
 
-void XINTERFACE::Realize(uint32_t Delta_Time)
+void XINTERFACE::Realize(uint32_t)
 {
     if (!m_bUse || !bActive)
         return;
 
     pRenderService->MakePostProcess();
 
-    Delta_Time = core.GetRDeltaTime();
+    auto Delta_Time = core.GetRDeltaTime();
 
     CMatrix moldv, moldp, moldw;
 
@@ -1081,32 +1081,34 @@ void XINTERFACE::LoadIni()
     GlobalScreenRect.right = screenSize.width + GlobalScreenRect.left;
 
     sprintf_s(section, "COMMON");
-    /*
-        // set screen parameters
-        if (ini->GetLong(platform, "bDynamicScaling", 0) != 0)
-        {
-            POINT screen_size = pRenderService->GetScreenSize();
-            float aspect = float(screen_size.x) / float(screen_size.y);
-            fScale = 1.f;
-            dwScreenWidth = 600 * aspect;
-            dwScreenHeight = 600;
-            GlobalScreenRect.left = (dwScreenWidth - 800) / 2;
-            GlobalScreenRect.top = 0;
-            GlobalScreenRect.right = (dwScreenWidth + 800) / 2;
-            GlobalScreenRect.bottom = 600;
-        }
-        else
-        {
+
+    // set screen parameters
+    const auto &canvas_size = core.GetScreenSize();
+    if (ini->GetLong(platform, "bDynamicScaling", 0) != 0)
+    {
+        POINT screen_size = pRenderService->GetScreenSize();
+        float aspect = float(screen_size.x) / float(screen_size.y);
+        fScale = 1.f;
+        dwScreenWidth = static_cast<uint32_t>(canvas_size.height * aspect);
+        dwScreenHeight = canvas_size.height;
+        GlobalScreenRect.left = (dwScreenWidth - canvas_size.width) / 2;
+        GlobalScreenRect.top = 0;
+        GlobalScreenRect.right = (dwScreenWidth + canvas_size.width) / 2;
+        GlobalScreenRect.bottom = canvas_size.height;
+    }
+    else
+    {
         fScale = ini->GetFloat(platform, "fScale", 1.f);
-        if (fScale < MIN_SCALE || fScale > MAX_SCALE) fScale = 1.f;
-        dwScreenWidth = ini->GetLong(platform, "wScreenWidth", 800);
-        dwScreenHeight = ini->GetLong(platform, "wScreenHeight", 600);
+        if (fScale < MIN_SCALE || fScale > MAX_SCALE)
+            fScale = 1.f;
+        dwScreenWidth = ini->GetLong(platform, "wScreenWidth", canvas_size.width);
+        dwScreenHeight = ini->GetLong(platform, "wScreenHeight", canvas_size.height);
         GlobalScreenRect.left = ini->GetLong(platform, "wScreenLeft", 0);
-        GlobalScreenRect.top = ini->GetLong(platform, "wScreenTop", 600);
-        GlobalScreenRect.right = ini->GetLong(platform, "wScreenRight", 800);
+        GlobalScreenRect.top = ini->GetLong(platform, "wScreenTop", canvas_size.height);
+        GlobalScreenRect.right = ini->GetLong(platform, "wScreenRight", canvas_size.width);
         GlobalScreenRect.bottom = ini->GetLong(platform, "wScreenDown", 0);
-      }
-    */
+    }
+
     m_fpMouseOutZoneOffset.x = ini->GetFloat(section, "mouseOutZoneWidth", 0.f);
     m_fpMouseOutZoneOffset.y = ini->GetFloat(section, "mouseOutZoneHeight", 0.f);
     m_nMouseLastClickTimeMax = ini->GetLong(section, "mouseDblClickInterval", 300);
@@ -2690,12 +2692,14 @@ bool XINTERFACE::SFLB_DoSaveFileData(const char *saveName, const char *saveData)
     entid_t ei;
     if (!(ei = EntityManager::GetEntityId("SCRSHOTER")))
         return false;
-    auto *ptex = (IDirect3DTexture9 *)core.Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
-    if (ptex == nullptr)
+    long textureId = core.Send_Message(ei, "l", MSG_SCRSHOT_MAKE);
+    if (textureId == -1)
         return false;
 
+    auto *pTex = static_cast<IDirect3DTexture9 *>(pRenderService->GetTextureFromID(textureId));
+
     D3DSURFACE_DESC dscr;
-    ptex->GetLevelDesc(0, &dscr);
+    pTex->GetLevelDesc(0, &dscr);
 
     auto pdat = static_cast<char *>(malloc(sizeof(SAVE_DATA_HANDLE) + slen));
     if (pdat == nullptr)
@@ -2711,13 +2715,13 @@ bool XINTERFACE::SFLB_DoSaveFileData(const char *saveName, const char *saveData)
     if (dscr.Height > 0)
     {
         D3DLOCKED_RECT lockRect;
-        if (ptex->LockRect(0, &lockRect, nullptr, 0) == D3D_OK)
+        if (pTex->LockRect(0, &lockRect, nullptr, 0) == D3D_OK)
         {
             ssize = lockRect.Pitch * dscr.Height;
             pdat = static_cast<char *>(realloc(pdat, sizeof(SAVE_DATA_HANDLE) + slen + ssize));
             ((SAVE_DATA_HANDLE *)pdat)->SurfaceDataSize = ssize;
             memcpy(&pdat[sizeof(SAVE_DATA_HANDLE) + slen], lockRect.pBits, ssize);
-            ptex->UnlockRect(0);
+            pTex->UnlockRect(0);
         }
         else
             core.Trace("Can`t lock screenshot texture");
@@ -3518,9 +3522,11 @@ void CONTROLS_CONTAINER::Execute(uint32_t delta_time)
             }
             pDescr = pDescr->next;
         }
-        if (_stricmp(pCont->resultName, "ChrTurnH1") == 0)
+        //debug code
+        /*  if (_stricmp(pCont->resultName, "ChrTurnH1") == 0)
             if (cs.state != CST_INACTIVE)
-                cs.state = cs.state; //~!~ breakpoint?
+                cs.state = cs.state;
+        */
         core.Controls->SetControlState(pCont->resultName, cs);
         core.Controls->GetControlState(pCont->resultName, csPrev);
         pCont = pCont->next;

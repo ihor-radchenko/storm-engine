@@ -156,7 +156,96 @@ coas_to_potc_man = {
     '122': '78'
 }
 
+coas_to_potc_woman = {
+  '0': '0',
+  '1': '1',
+  '2': '2',
+  '3': '3',
+  '4': '4',
+  '5': '5',
+  '6': '6',
+  '7': '7',
+  '8': '8',
+  '9': '9',
+  '10': '10',
+  '11': '11',
+  '12': '12',
+  '13': '13',
+  '14': '14',
+  '15': '15',
+  '16': '16',
+  '17': '17',
+  '18': '18',
+  '19': '19',
+  '20': '20',
+  '22': '21',
+  '23': '22',
+  '24': '23',
+  '25': '24',
+  '26': '25',
+  '38': '26',
+  '39': '27',
+  '40': '28',
+  '55': '29',
+  '56': '30',
+  '57': '31',
+  '68': '32',
+  '69': '33',
+  '70': '34',
+  '79': '35',
+  '80': '36',
+  '81': '37',
+  '82': '38',
+  '83': '39',
+  '84': '40',
+  '85': '41',
+  '86': '42',
+  '87': '43',
+  '88': '44',
+  '89': '45',
+  '90': '46',
+  '91': '47',
+  '92': '48',
+  '93': '49',
+  '94': '50',
+  '95': '51',
+  '96': '52',
+  '97': '53',
+  '98': '54',
+  '99': '55',
+  '100': '56',
+  '101': '57',
+  '102': '58',
+  '103': '59',
+  '104': '60',
+  '105': '61',
+  '106': '62',
+  '107': '63',
+  '108': '64',
+  '109': '65',
+  '110': '66',
+  '111': '67',
+  '112': '68',
+  '113': '69',
+  '114': '70',
+  '115': '71',
+  '116': '72',
+  '117': '73',
+  '118': '74',
+  '119': '75',
+  '120': '76',
+  '121': '77',
+  '122': '78',
+  '123': '79',
+  '124': '80',
+  '125': '81',
+  '126': '82',
+  '127': '83'
+}
+
 potc_to_coas_man = {value: key for key, value in coas_to_potc_man.items()}
+
+potc_to_coas_woman = {value: key for key, value in coas_to_potc_woman.items()}
 
 # taken from Copy Attributes Menu Addon by Bassam Kurdali, Fabian Fricke, Adam Wiseman
 def getmat(bone, active, context, ignoreparent):
@@ -283,9 +372,12 @@ def parse_gm(file_path="", report_func=None):
         header_bboxCenter = read_vector(file)
         header_radius = struct.unpack("<f", file.read(4))[0]
 
-        globname = ''
-        for i in range(header_name_size):
-            globname += (struct.unpack("<s", file.read(1))[0]).decode("utf-8")
+        globname = file.read(header_name_size)
+        
+        try:
+            globname = globname.decode("utf-8")
+        except UnicodeDecodeError as error:
+            globname = globname.decode("cp1251")
 
         names_offsets = []
         for i in range(header_names_quantity):
@@ -751,6 +843,8 @@ def import_gm(
     fix_coas_man_head=False,
     convert_coas_to_potc_man=False,
     convert_potc_to_coas_man=False,
+    convert_coas_to_potc_woman=False,
+    convert_potc_to_coas_woman=False,
     report_func=None
 ):
     file_name = os.path.basename(file_path)[:-3]
@@ -777,6 +871,7 @@ def import_gm(
         armature_obj_pose_source = get_armature_obj(
             an_path, collection, 'POSE_SOURCE', fix_coas_man_head=fix_coas_man_head)
 
+    blender_objects = []
     for object in data['objects']:
         name = object.get('name')
 
@@ -794,6 +889,7 @@ def import_gm(
 
         me = bpy.data.meshes.new(name)
         ob = bpy.data.objects.new(name, me)
+        blender_objects.append(ob)
         ob.parent = root
 
         bm = bmesh.new()
@@ -935,11 +1031,18 @@ def import_gm(
                 first_bone_idx = bone_ids[x][0]
                 second_bone_idx = bone_ids[x][1]
 
-                if convert_coas_to_potc_man:
-                    converted_first_bone_idx = coas_to_potc_man.get(
-                        str(bone_ids[x][0]))
-                    converted_second_bone_idx = coas_to_potc_man.get(
-                        str(bone_ids[x][1]))
+                if convert_coas_to_potc_man or convert_coas_to_potc_woman:
+                    if convert_coas_to_potc_man:
+                        converted_first_bone_idx = coas_to_potc_man.get(
+                            str(bone_ids[x][0]))
+                        converted_second_bone_idx = coas_to_potc_man.get(
+                            str(bone_ids[x][1]))
+
+                    if convert_coas_to_potc_woman:
+                        converted_first_bone_idx = coas_to_potc_woman.get(
+                            str(bone_ids[x][0]))
+                        converted_second_bone_idx = coas_to_potc_woman.get(
+                            str(bone_ids[x][1]))
 
                     if converted_first_bone_idx is None:
                         converted_first_bone_idx = 16
@@ -952,6 +1055,10 @@ def import_gm(
                 if convert_potc_to_coas_man:
                     first_bone_idx = potc_to_coas_man.get(str(bone_ids[x][0]))
                     second_bone_idx = potc_to_coas_man.get(str(bone_ids[x][1]))
+
+                if convert_potc_to_coas_woman:
+                    first_bone_idx = potc_to_coas_woman.get(str(bone_ids[x][0]))
+                    second_bone_idx = potc_to_coas_woman.get(str(bone_ids[x][1]))
 
                 first_bone_name = "Bone" + str(first_bone_idx)
                 second_bone_name = "Bone" + str(second_bone_idx)
@@ -976,35 +1083,39 @@ def import_gm(
             ob.parent = armature_obj_pose
             modifier = ob.modifiers.new(type='ARMATURE', name="Armature")
             modifier.object = armature_obj_pose
+            modifier.use_deform_preserve_volume = True
             bpy.context.view_layer.objects.active = armature_obj_pose
 
-            bpy.ops.pose.armature_apply(selected=False)
+    if has_animation:
+        bpy.ops.pose.armature_apply(selected=False)
 
-            bpy.ops.object.mode_set(mode='POSE', toggle=False)
+        bpy.ops.object.mode_set(mode='POSE', toggle=False)
 
-            for pbone in armature_obj.data.bones:
-                bone_name = pbone.name
+        for pbone in armature_obj.data.bones:
+            bone_name = pbone.name
 
-                bone = armature_obj_pose.pose.bones[bone_name]
-                active = armature_obj_pose_source.pose.bones[bone_name]
+            bone = armature_obj_pose.pose.bones[bone_name]
+            active = armature_obj_pose_source.pose.bones[bone_name]
 
-                bone.location = getmat(
-                    bone, active, context, False).to_translation()
-                bone.rotation_quaternion = getmat(
-                    bone, active, context, not bone.id_data.data.bones[bone.name].use_inherit_rotation).to_3x3().to_quaternion()
+            bone.location = getmat(
+                bone, active, context, False).to_translation()
+            bone.rotation_quaternion = getmat(
+                bone, active, context, not bone.id_data.data.bones[bone.name].use_inherit_rotation).to_3x3().to_quaternion()
 
-                """ hack """
-                bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-                bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+            """ hack """
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-            bpy.context.view_layer.objects.active = ob
+        for blender_object in blender_objects:
+            bpy.context.view_layer.objects.active = blender_object
             bpy.ops.object.modifier_apply(modifier="Armature")
 
-            bpy.data.objects.remove(armature_obj_pose_source, do_unlink=True)
-            bpy.data.objects.remove(armature_obj_pose, do_unlink=True)
+        bpy.data.objects.remove(armature_obj_pose_source, do_unlink=True)
+        bpy.data.objects.remove(armature_obj_pose, do_unlink=True)
 
-            ob.parent = armature_obj
-            modifier = ob.modifiers.new(type='ARMATURE', name="Armature")
+        for blender_object in blender_objects:
+            blender_object.parent = armature_obj
+            modifier = blender_object.modifiers.new(type='ARMATURE', name="Armature")
             modifier.object = armature_obj
             modifier.use_deform_preserve_volume = True
 
@@ -1024,6 +1135,7 @@ def import_gm(
             locator_bone_idx = locator_data.get('boneIdx')
             locator = bpy.data.objects.new(locator_name, None)
             collection.objects.link(locator)
+            locator.empty_display_type = 'ARROWS'
             locator.parent = group_locator
             locator.matrix_basis = locator_m
             locator.empty_display_size = 0.5
@@ -1034,6 +1146,10 @@ def import_gm(
                 if convert_potc_to_coas_man:
                     bone = armature_obj.pose.bones["Bone" +
                                                    potc_to_coas_man.get(str(locator_bone_idx))]
+
+                if convert_potc_to_coas_woman:
+                    bone = armature_obj.pose.bones["Bone" +
+                                                   potc_to_coas_woman.get(str(locator_bone_idx))]
 
                 locator.parent_bone = bone.name
                 locator.parent_type = 'BONE'
@@ -1092,6 +1208,16 @@ class ImportGm(Operator, ImportHelper):
         default=False,
     )
 
+    convert_coas_to_potc_woman: BoolProperty(
+        name="Convert CoAS woman skeleton to PotC",
+        default=False,
+    )
+
+    convert_potc_to_coas_woman: BoolProperty(
+        name="Convert PotC woman skeleton to CoAS",
+        default=False,
+    )
+
     def execute(self, context):
         an_path = os.path.join(os.path.dirname(self.filepath), self.an_name)
         textures_path = os.path.join(os.path.dirname(self.filepath), self.textures_path)
@@ -1104,6 +1230,8 @@ class ImportGm(Operator, ImportHelper):
                 fix_coas_man_head=self.fix_coas_man_head,
                 convert_coas_to_potc_man=self.convert_coas_to_potc_man,
                 convert_potc_to_coas_man=self.convert_potc_to_coas_man,
+                convert_coas_to_potc_woman=self.convert_coas_to_potc_woman,
+                convert_potc_to_coas_woman=self.convert_potc_to_coas_woman,
                 report_func=self.report
             )
 
