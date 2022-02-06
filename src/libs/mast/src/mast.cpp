@@ -1,5 +1,5 @@
-#include "MAST.h"
-#include "Island_Base.h"
+#include "mast.h"
+#include "island_base.h"
 #include "shared/mast_msg.h"
 #include "shared/sail_msg.h"
 #include "ship_base.h"
@@ -65,11 +65,11 @@ void MAST::SetDevice()
 {
     // GUARD(MAST::SetDevice())
 
-    RenderService = static_cast<VDX9RENDER *>(core.CreateService("dx9render"));
+    RenderService = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
     if (!RenderService)
         throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE *>(core.CreateService("COLL"));
+    pCollide = static_cast<COLLIDE *>(core.GetService("COLL"));
     if (!pCollide)
         throw std::runtime_error("No service: collide");
 
@@ -206,6 +206,8 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE *mastNodePointer)
     const auto sailEI = EntityManager::GetEntityId("sail");
     const auto flagEI = EntityManager::GetEntityId("flag");
     const auto vantEI = EntityManager::GetEntityId("vant");
+    const auto vantlEI = EntityManager::GetEntityId("vantl");
+    const auto vantzEI = EntityManager::GetEntityId("vantz");
 
     // find the attributes
     VAI_OBJBASE *pVAI = nullptr;
@@ -220,7 +222,7 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE *mastNodePointer)
     float fMastDamage = 0.f;
     if (pAMasts != nullptr)
         fMastDamage = pAMasts->GetAttributeAsFloat((char *)mastNodePointer->GetName(), 0.f);
-    long chrIdx = -1;
+    int32_t chrIdx = -1;
     if (pA != nullptr)
         chrIdx = pA->GetAttributeAsDword("index", -1);
     core.Event("EventMastFall", "lsl", chrIdx, mastNodePointer->GetName(), fMastDamage < 1.f);
@@ -241,6 +243,10 @@ void MAST::Mount(entid_t modelEI, entid_t shipEI, NODE *mastNodePointer)
         // go through all the ropes of this mast and turn them off
         if (vantEI)
             core.Send_Message(vantEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
+        if (vantlEI)
+            core.Send_Message(vantlEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
+        if (vantzEI)
+            core.Send_Message(vantzEI, "lip", MSG_VANT_DEL_MAST, modelEI, mastNodePointer);
         auto mdl = static_cast<MODEL *>(EntityManager::GetEntityPointer(model_id));
         if (mdl != nullptr)
             for (i = 0; i < 10000; i++)
@@ -463,9 +469,9 @@ void MAST::LoadIni()
     // the step of lowering the mast in depth
     DEEP_FALL_STEP = ini->GetFloat(section, "fDeepStep", DEEP_FALL_STEP);
     // number of motion frames after which collision with objects is disabled
-    MAX_MOVE_CICLES = ini->GetLong(section, "maxMoveCicles", MAX_MOVE_CICLES);
+    MAX_MOVE_CICLES = ini->GetInt(section, "maxMoveCicles", MAX_MOVE_CICLES);
     // the number of motion frames after which the fall of the mast is switched on
-    MIN_MOV_COUNTER = ini->GetLong(section, "minMoveCicles", MIN_MOV_COUNTER);
+    MIN_MOV_COUNTER = ini->GetInt(section, "minMoveCicles", MIN_MOV_COUNTER);
     // minimum angle of rotation of the mast in X
     MIN_X_DANG = ini->GetFloat(section, "fMinXdang", MIN_X_DANG);
     // limit of change of the angle of rotation of the mast in X
@@ -752,11 +758,11 @@ bool HULL::Init()
 
 void HULL::SetDevice()
 {
-    RenderService = static_cast<VDX9RENDER *>(core.CreateService("dx9render"));
+    RenderService = static_cast<VDX9RENDER *>(core.GetService("dx9render"));
     if (!RenderService)
         throw std::runtime_error("No service: dx9render");
 
-    pCollide = static_cast<COLLIDE *>(core.CreateService("COLL"));
+    pCollide = static_cast<COLLIDE *>(core.GetService("COLL"));
     if (!pCollide)
         throw std::runtime_error("No service: collide");
 }

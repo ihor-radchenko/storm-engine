@@ -15,9 +15,9 @@
 
 #define VIDEO_DIRECTORY "resource\\videos"
 
-long AVI_GetTextureSize(long width)
+int32_t AVI_GetTextureSize(int32_t width)
 {
-    long i = 2;
+    int32_t i = 2;
     while ((width >>= 1L) > 0)
         i <<= 1L;
     return i;
@@ -50,7 +50,7 @@ CAviPlayer::~CAviPlayer()
 
 bool CAviPlayer::Init()
 {
-    if ((rs = static_cast<VDX9RENDER *>(core.CreateService("dx9render"))) == nullptr)
+    if ((rs = static_cast<VDX9RENDER *>(core.GetService("dx9render"))) == nullptr)
     {
         throw std::runtime_error("Can`t create render service");
     }
@@ -103,7 +103,8 @@ void CAviPlayer::Realize(uint32_t delta_time)
         m_bFirstDraw = false;
     }
 
-    if ((hr = pSample->Update(0, nullptr, nullptr, NULL)) == S_OK)
+    hr = pSample->Update(0, nullptr, nullptr, NULL);
+    if (hr == S_OK)
     {
         hr = pVideoSurface->Lock(nullptr, &ddsd, 0, nullptr);
         if (hr != S_OK)
@@ -134,6 +135,14 @@ void CAviPlayer::Realize(uint32_t delta_time)
             rs->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, XI_AVIVIDEO_FVF, 2, v, sizeof(XI_AVIVIDEO_VERTEX), "battle_icons");
         }
     }
+    else if (hr == MS_S_ENDOFSTREAM && bLoop)
+    {
+        CleanupInterfaces();
+        if(!GetInterfaces() || !PlayMedia(filename.c_str()))
+        {
+            m_bContinue = false;
+        }
+    }
     else
     {
         m_bContinue = false;
@@ -147,13 +156,20 @@ uint64_t CAviPlayer::ProcessMessage(MESSAGE &message)
     case MSG_SET_VIDEO_PLAY: {
         const std::string &param = message.String();
         const std::string vidName = fmt::format("{}\\{}", VIDEO_DIRECTORY, param);
+        filename = vidName;
         if (!PlayMedia(vidName.c_str()))
         {
             CleanupInterfaces();
             core.PostEvent("ievntEndVideo", 1, nullptr);
         }
+        break;
     }
-    break;
+    case MSG_SET_VIDEO_FLAGS: {
+        constexpr auto loop_flag = 1 << 0;
+        auto flags = message.Long();
+        bLoop = flags & loop_flag;
+        break;
+    }
     }
     return 0;
 }
@@ -195,8 +211,8 @@ bool CAviPlayer::PlayMedia(const char *fileName)
         core.Trace("Video Error!!! Can`t get stream format");
         return false;
     }
-    long srcWidth = ddsd.dwWidth;
-    long srcHeight = ddsd.dwHeight;
+    int32_t srcWidth = ddsd.dwWidth;
+    int32_t srcHeight = ddsd.dwHeight;
     hr = pDD->CreateSurface(&ddsd, &pVideoSurface, nullptr);
     if (FAILED(hr))
     {
@@ -217,7 +233,7 @@ bool CAviPlayer::PlayMedia(const char *fileName)
     }
 
     RECT dstRect;
-    GetWindowRect(core.GetAppHWND(), &dstRect);
+    GetWindowRect(static_cast<HWND>(core.GetAppHWND()), &dstRect);
     auto dstWidth = dstRect.right - dstRect.left;
     auto dstHeight = dstRect.bottom - dstRect.top;
 
@@ -229,8 +245,8 @@ bool CAviPlayer::PlayMedia(const char *fileName)
         horzK = vertK;
 
     dstRect.left = dstRect.top = 0;
-    dstRect.right = static_cast<long>(srcWidth * horzK + .5f);
-    dstRect.bottom = static_cast<long>(srcHeight * vertK + .5f);
+    dstRect.right = static_cast<int32_t>(srcWidth * horzK + .5f);
+    dstRect.bottom = static_cast<int32_t>(srcHeight * vertK + .5f);
 
     dstRect.left += (dstWidth - dstRect.right) / 2;
     dstRect.top += (dstHeight - dstRect.bottom) / 2;
@@ -298,7 +314,7 @@ bool CAviPlayer::GetInterfaces()
         core.Trace("Video Error!!! Can`t create DirectDraw interface");
         return false;
     }
-    hr = pDD->SetCooperativeLevel(core.GetAppHWND(), DDSCL_NORMAL);
+    hr = pDD->SetCooperativeLevel(static_cast<HWND>(core.GetAppHWND()), DDSCL_NORMAL);
     if (FAILED(hr))
     {
         core.Trace("Video Error!!! Can`t SetCooperativeLevel for DirectDraw");

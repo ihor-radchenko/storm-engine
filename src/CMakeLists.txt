@@ -10,7 +10,16 @@ if(STORM_ENABLE_CRASH_REPORTS)
 	add_definitions(-DSTORM_ENABLE_CRASH_REPORTS=1)
 endif()
 
+if(STORM_WATERMARK_FILE)
+  add_definitions(-DSTORM_WATERMARK_FILE="${STORM_WATERMARK_FILE}")
+endif()
+
 if (MSVC)
+    # Ignore warnings about missing pdb
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4099")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4099")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4099")
+
     # Always generate PDBs
     add_compile_options(/Zi)
     add_link_options(/DEBUG)
@@ -19,6 +28,8 @@ if (MSVC)
     add_compile_options(/WX) # Treats compiler warnings as errors
     add_compile_options(/std:c++latest) # Language Standard Version
     add_compile_options(/MP) # Build with Multiple Processes
+    add_compile_options(/fp:fast) # Build with Multiple Processes
+
 
     add_compile_options("$<$<CONFIG:Release>:/Gy>") # Enable Function-Level Linking
     add_compile_options("$<$<CONFIG:Release>:/Oi>") # Generate intrinsic functions

@@ -71,6 +71,13 @@ Edit -> Preferences... -> Add-ons -> Install... -> Select export_gm.py from io_e
 File -> Export... -> GM Export(.gm)
 ```
 
+## Issues
+
+Export with BSP is very slow in Blender, so I've made bsp-patcher.exe utility.
+It is preferable to use it when exporting with BSP
+
+[bsp-patcher](../bsp-patcher)
+
 ## Author
 
 [Artess999](https://github.com/Artess999)

@@ -17,9 +17,7 @@ inline path GetStashPath()
         wchar_t *str = nullptr;
         SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_SIMPLE_IDLIST, nullptr, &str);
         path = str;
-        const auto u8str = path.u8string();
-        const std::string toUtf8(u8str.begin(), u8str.end());
-        path = fs::path(toUtf8) / "My Games" / "Sea Dogs";
+        path = path / "My Games" / "Sea Dogs";
         CoTaskMemFree(str);
     }
     return path;
@@ -33,6 +31,11 @@ inline path GetLogsPath()
 inline path GetSaveDataPath()
 {
     return GetStashPath() / "SaveData";
+}
+
+inline path GetScreenshotsPath()
+{
+    return GetStashPath() / "Screenshots";
 }
 
 constexpr char ENGINE_INI_FILE_NAME[] = "engine.ini";
