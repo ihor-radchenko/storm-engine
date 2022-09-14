@@ -1,11 +1,15 @@
 #pragma once
 
+#ifdef _WIN32 // Effects
 #include "effects.h"
+#else
+#include "technique.h"
+#endif
 #include "font.h"
 #include "video_texture.h"
-#include "defines.h"
 #include "dx9render.h"
-#include "v_module_api.h"
+#include "vma.hpp"
+#include "platform/platform.hpp"
 
 #include "d3d9types.h"
 #include "script_libriary.h"
@@ -194,7 +198,7 @@ class DX9RENDER : public VDX9RENDER
     void DrawPrimitive(D3DPRIMITIVETYPE dwPrimitiveType, int32_t iVBuff, int32_t iStride, int32_t iStartV, int32_t iNumPT,
                        const char *cBlockName = nullptr) override;
     void DrawPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwVertexBufferFormat, uint32_t dwNumPT,
-                         void *pVerts, uint32_t dwStride, const char *cBlockName = nullptr) override;
+                         const void *pVerts, uint32_t dwStride, const char *cBlockName = nullptr) override;
     void DrawIndexedPrimitiveUP(D3DPRIMITIVETYPE dwPrimitiveType, uint32_t dwMinIndex, uint32_t dwNumVertices,
                                 uint32_t dwPrimitiveCount, const void *pIndexData, D3DFORMAT IndexDataFormat,
                                 const void *pVertexData, uint32_t dwVertexStride,
@@ -294,8 +298,8 @@ class DX9RENDER : public VDX9RENDER
     HRESULT SetVertexDeclaration(IDirect3DVertexDeclaration9 *pDecl) override;
     HRESULT CreatePixelShader(CONST uint32_t *pFunction, IDirect3DPixelShader9 **ppShader) override;
     HRESULT CreateVertexShader(CONST uint32_t *pFunction, IDirect3DVertexShader9 **ppShader) override;
-    /*virtual HRESULT DeletePixelShader( DWORD Handle );
-    virtual HRESULT DeleteVertexShader( DWORD Handle );*/
+    HRESULT DeletePixelShader(IDirect3DPixelShader9 *pShader) override;
+    HRESULT DeleteVertexShader(IDirect3DVertexShader9 *pShader) override;
     HRESULT SetVertexShader(IDirect3DVertexShader9 *pShader) override;
     HRESULT SetPixelShader(IDirect3DPixelShader9 *pShader) override;
     /*virtual HRESULT SetFVFConstant(DWORD Register, CONST void* pConstantData, DWORD  ConstantCount );*/
@@ -304,7 +308,9 @@ class DX9RENDER : public VDX9RENDER
     HRESULT SetFVF(uint32_t handle) override;
     HRESULT GetVertexShader(IDirect3DVertexShader9 **ppShader) override;
     HRESULT GetPixelShader(IDirect3DPixelShader9 **ppShader) override;
+#ifdef _WIN32 // Effects
     ID3DXEffect *GetEffectPointer(const char *techniqueName) override;
+#endif
 
     // D3D Render Target/Begin/End/Clear
     HRESULT GetRenderTarget(IDirect3DSurface9 **ppRenderTarget) override;
@@ -396,6 +402,7 @@ class DX9RENDER : public VDX9RENDER
 
     void SetColorParameters(float fGamma, float fBrightness, float fContrast) override;
     void DrawSphere(const CVECTOR &vPos, float fRadius, uint32_t dwColor) override;
+    void DrawEllipsoid(const CVECTOR &vPos, float a, float b, float c, float ay, uint32_t dwColor) override;
 
     void GetNearFarPlane(float &fNear, float &fFar) override;
     void SetNearFarPlane(float fNear, float fFar) override;
@@ -408,8 +415,6 @@ class DX9RENDER : public VDX9RENDER
     void DrawVector(const CVECTOR &v1, const CVECTOR &v2, uint32_t dwColor,
                     const char *pTechniqueName = "DXVector") override;
     IDirect3DBaseTexture9 *GetBaseTexture(int32_t iTexture) override;
-
-    IDirect3DBaseTexture9 *CreateTextureFromFileInMemory(const char *pFile, uint32_t dwSize) override;
 
     bool PushRenderTarget() override;
     bool PopRenderTarget() override;
@@ -429,6 +434,8 @@ class DX9RENDER : public VDX9RENDER
     void SetGLOWParams(float _fBlurBrushSize, int32_t _GlowIntensity, int32_t _GlowPasses) override;
 
     IDirect3DBaseTexture9 *GetTextureFromID(int32_t nTextureID) override;
+
+    bool GetRenderTargetAsTexture(IDirect3DTexture9 **tex) override;
 
     void LostRender();
     void RestoreRender();
@@ -459,11 +466,15 @@ private:
 
     float FovMultiplier{ 1.0f };
 
+#ifdef _WIN32 // Effects
     Effects effects_;
+#else
+    std::unique_ptr<CTechnique> pTechnique;
+#endif
 
     char *fontIniFileName;
     int32_t nFontQuantity;
-    FONTEntity FontList[MAX_FONTS];
+    FONTEntity FontList[MAX_FONTS]{};
     int32_t idFontCurrent;
 
     VideoTextureEntity *pVTL;
@@ -478,23 +489,12 @@ private:
 
     PLANE viewplane[4];
 
-    STEXTURE Textures[MAX_STEXTURES];
-    INDEX_BUFFER IndexBuffers[MAX_BUFFERS];
-    VERTEX_BUFFER VertexBuffers[MAX_BUFFERS];
+    STEXTURE Textures[MAX_STEXTURES]{};
+    INDEX_BUFFER IndexBuffers[MAX_BUFFERS]{};
+    VERTEX_BUFFER VertexBuffers[MAX_BUFFERS]{};
 
     bool MakeAvi;
     IDirect3DSurface9 *ImageBuffer;
-
-    // VideoCapture section
-    HDC hDesktopDC, hCaptureDC;
-    HBITMAP hCaptureBitmap;
-    LPBITMAPINFO lpbi;
-    int32_t iCaptureFrameIndex;
-    bool bPreparedCapture;
-    bool bVideoCapture;
-    float fFixedFPS;
-    std::vector<char *> aCaptureBuffers;
-    uint32_t dwCaptureBuffersReady;
 
     //-------- post process
 
@@ -578,7 +578,6 @@ private:
 
     uint32_t dwNumDrawPrimitive, dwNumLV, dwNumLI;
     float fG, fB, fC;
-    D3DGAMMARAMP DefaultRamp;
 
     float fNearClipPlane, fFarClipPlane;
 
@@ -587,19 +586,17 @@ private:
     bool bTrace;
     int32_t iSetupPath;
     uint64_t dwSetupNumber;
-    texpaths_t TexPaths[4];
+    texpaths_t TexPaths[4]{};
 
     bool bDropVideoConveyor;
 
     std::stack<RenderTarget> stRenderTarget;
 
+#ifdef _WIN32 // Screenshot
     D3DXIMAGE_FILEFORMAT screenshotFormat;
+#endif
     std::string screenshotExt;
 
     bool TextureLoad(int32_t texid);
     bool TextureLoadUsingD3DX(const char *path, int32_t texid);
-
-    bool MakeCapture();
-    void SaveCaptureBuffers();
-    void PrepareCapture();
 };

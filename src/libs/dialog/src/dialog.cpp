@@ -1,7 +1,7 @@
 #include "dialog.h"
 #include "v_sound_service.h"
 #include "core.h"
-#include "defines.h"
+#include "string_compare.hpp"
 
 #include "v_file_service.h"
 
@@ -1048,7 +1048,7 @@ void DIALOG::Realize(uint32_t Delta_Time)
                 pA = pA->GetAttributeClass(m_DlgLinks.nSelectLine);
             if (pA)
             {
-                char *goName = pA->GetAttribute("go");
+                const char* goName = pA->GetAttribute("go");
                 if (!goName || storm::iEquals(goName, selectedLinkName))
                     EmergencyExit();
                 else
