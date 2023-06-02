@@ -67,7 +67,7 @@ void *VBTransform(void *vb, int32_t startVrt, int32_t nVerts, int32_t totVerts)
     auto *src = static_cast<GEOS::AVERTEX0 *>(vb);
 
     GEOS::VERTEX0 *dst;
-    dest_vb->Lock(0, 0, (VOID **)&dst, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
+    dest_vb->Lock(0, 0, (void **)&dst, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK);
 
 #ifndef _WIN32 // FIX_LINUX DirectXMath
     CMatrix mtx;
@@ -158,7 +158,7 @@ void SetChildrenTechnique(NODE *_root, const char *_name)
     if (!_root || !_name)
         return;
     _root->SetTechnique(_name);
-    for (int i = 0; i < _root->nnext; i++)
+    for (int i = 0; i < _root->next.size(); i++)
         SetChildrenTechnique(_root->next[i], _name);
 }
 

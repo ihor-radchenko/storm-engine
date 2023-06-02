@@ -53,6 +53,7 @@ PCS_CONTROLS::~PCS_CONTROLS()
 
 void PCS_CONTROLS::AppState(bool state)
 {
+    updateCursor_ = state;
     if (state)
     {
         // RECT r;
@@ -112,6 +113,14 @@ bool PCS_CONTROLS::GetSystemControlDesc(int32_t code, SYSTEM_CONTROL_DESC &_cont
     case VK_MBUTTON:
         _control_desc_struct.ControlType = SYSTEM_CONTROL_DESC::CT_BUTTON;
         _control_desc_struct.pControlName = "Mouse middle button";
+        break;
+    case VK_XBUTTON1:
+        _control_desc_struct.ControlType = SYSTEM_CONTROL_DESC::CT_BUTTON;
+        _control_desc_struct.pControlName = "Mouse special button 1";
+        break;
+    case VK_XBUTTON2:
+        _control_desc_struct.ControlType = SYSTEM_CONTROL_DESC::CT_BUTTON;
+        _control_desc_struct.pControlName = "Mouse special button 2";
         break;
     default:
         _control_desc_struct.ControlType = SYSTEM_CONTROL_DESC::CT_BUTTON;
@@ -427,17 +436,23 @@ void PCS_CONTROLS::Update(uint32_t DeltaTime)
 {
 #ifdef _WIN32
     static int nMouseXPrev, nMouseYPrev;
-    POINT point;
-    GetCursorPos(&point);
+    if (updateCursor_) {
+        POINT point;
+        GetCursorPos(&point);
 
-    nMouseDx = point.x - nMouseXPrev;
-    nMouseDy = point.y - nMouseYPrev;
+        nMouseDx = point.x - nMouseXPrev;
+        nMouseDy = point.y - nMouseYPrev;
 
-    RECT r;
-    GetWindowRect(static_cast<HWND>(core.GetWindow()->OSHandle()), &r);
-    nMouseXPrev = r.left + (r.right - r.left) / 2;
-    nMouseYPrev = r.top + (r.bottom - r.top) / 2;
-    SetCursorPos(nMouseXPrev, nMouseYPrev);
+        RECT r;
+        GetWindowRect(static_cast<HWND>(core.GetWindow()->OSHandle()), &r);
+        nMouseXPrev = r.left + (r.right - r.left) / 2;
+        nMouseYPrev = r.top + (r.bottom - r.top) / 2;
+        SetCursorPos(nMouseXPrev, nMouseYPrev);
+    }
+    else {
+        nMouseDx = 0;
+        nMouseDy = 0;
+    }
 #endif
 
     m_ControlTree.Process();
@@ -626,6 +641,10 @@ bool PCS_CONTROLS::IsKeyPressed(int vk)
         pressed = input_->MouseKeyState(MouseKey::Right);
     else if (vk == VK_MBUTTON)
         pressed = input_->MouseKeyState(MouseKey::Middle);
+    else if (vk == VK_XBUTTON1)
+        pressed = input_->MouseKeyState(MouseKey::Special1);
+    else if (vk == VK_XBUTTON2)
+        pressed = input_->MouseKeyState(MouseKey::Special2);
     else if (vk == VK_TAB)
     {
         if (!input_->KeyboardKeyState(VK_MENU))
